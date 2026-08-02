@@ -1,17 +1,26 @@
 import { app } from "./app.js";
 import { initializeDatabase } from "./config/database.js";
 
-const port = Number(process.env.PORT!);
+export function getPort(): number {
+  const portValue = process.env.PORT ?? "8080";
+  const parsed = Number(portValue);
+
+  return Number.isNaN(parsed) ? 8080 : parsed;
+}
 
 async function startServer() {
   await initializeDatabase();
+
+  const port = getPort();
 
   app.listen(port, () => {
     console.log(`Server listening on port ${port}`);
   });
 }
 
-startServer().catch((error) => {
-  console.error("Failed to start server", error);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== "test") {
+  startServer().catch((error) => {
+    console.error("Failed to start server", error);
+    process.exit(1);
+  });
+}

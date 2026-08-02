@@ -11,6 +11,7 @@
     "build": "npx tsc",
     "start": "node dist/server.js",
     "dev": "npx tsc && node dist/server.js",
+    "migrate:prod": "node --import tsx ./src/scripts/run-migrations.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --write",
