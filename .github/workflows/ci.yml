@@ -36,5 +36,5 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app npm run migrate:prod
       - run: npm run build
-      - run: npm test
+      - run: DATABASE_URL=postgresql://mock_connection npm test
       - run: npm run lint
