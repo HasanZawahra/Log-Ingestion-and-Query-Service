@@ -32,7 +32,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: npm config set fund false
+      - run: npm install --no-audit --no-fund
       - run: DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app npm run migrate:prod
       - run: npm run build
       - run: npm test
