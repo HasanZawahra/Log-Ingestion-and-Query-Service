@@ -4,3 +4,4 @@ node_modules
 dist
 .env
 coverage
+src/database/migrations

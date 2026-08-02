@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "nodenext",
+    "target": "ESNext",
+    "module": "NodeNext",
     "rootDir": "./src",
     "outDir": "./dist",
+    "types": ["node"],
     "strict": true,
     "sourceMap": true,
     "lib": ["ESNext"],
@@ -14,6 +15,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["src/**/*.ts", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
