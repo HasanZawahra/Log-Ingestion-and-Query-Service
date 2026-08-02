@@ -7,9 +7,7 @@ export class PostgresLogRepository {
     try {
       await client.query("SELECT 1");
 
-      const { rows } = await client.query(
-        "SELECT to_regclass('public.logs') AS table_name",
-      );
+      const { rows } = await client.query("SELECT to_regclass('public.logs') AS table_name");
 
       const tableExists = rows[0]?.table_name === "logs";
 

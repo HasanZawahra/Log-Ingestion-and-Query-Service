@@ -1,17 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
-import { app } from "../app.js";
-
-vi.mock("../config/database.js", () => ({
-  getDatabaseHealth: vi.fn(),
-}));
-
-import { getDatabaseHealth } from "../config/database.js";
-
-const mockedGetDatabaseHealth = vi.mocked(getDatabaseHealth);
+import { HealthController } from "../controllers/health-controller.js";
+import type { IHealthService } from "../services/interfaces/health-service.js";
 
 describe("GET /health", () => {
   it("returns ok when the database is healthy", async () => {
-    mockedGetDatabaseHealth.mockResolvedValueOnce(true);
+    const healthService: IHealthService = {
+      checkHealth: vi.fn().mockResolvedValueOnce(true),
+    };
+    const controller = new HealthController(healthService);
 
     const response = await new Promise<{ status: number; body: { status: string } }>((resolve) => {
       const req = { method: "GET", url: "/health" };
@@ -32,7 +28,7 @@ describe("GET /health", () => {
         },
       };
 
-      app.handle(req as never, res as never);
+      controller.getHealth(req as never, res as never);
     });
 
     expect(response.status).toBe(200);
@@ -40,7 +36,10 @@ describe("GET /health", () => {
   });
 
   it("returns unavailable when the database is not healthy", async () => {
-    mockedGetDatabaseHealth.mockResolvedValueOnce(false);
+    const healthService: IHealthService = {
+      checkHealth: vi.fn().mockResolvedValueOnce(false),
+    };
+    const controller = new HealthController(healthService);
 
     const response = await new Promise<{ status: number; body: { status: string } }>((resolve) => {
       const req = { method: "GET", url: "/health" };
@@ -61,7 +60,7 @@ describe("GET /health", () => {
         },
       };
 
-      app.handle(req as never, res as never);
+      controller.getHealth(req as never, res as never);
     });
 
     expect(response.status).toBe(503);

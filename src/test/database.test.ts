@@ -24,12 +24,10 @@ describe("database initialization", () => {
   });
 
   it("retries initialization after an initial failure", async () => {
-    mockConnect
-      .mockRejectedValueOnce(new Error("db unavailable"))
-      .mockResolvedValueOnce({
-        query: mockQuery,
-        release: vi.fn(),
-      });
+    mockConnect.mockRejectedValueOnce(new Error("db unavailable")).mockResolvedValueOnce({
+      query: mockQuery,
+      release: vi.fn(),
+    });
 
     mockQuery.mockResolvedValue({ rows: [{ table_name: "logs" }] });
 
