@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { Pool } from "pg";
-import { PostgresLogRepository } from "../repositories/postgres/log-repository.js";
 
 const connectionString = process.env.DATABASE_URL!;
 
@@ -11,8 +10,6 @@ if (!connectionString) {
 export const pool = new Pool({
   connectionString,
 });
-
-const logRepository = new PostgresLogRepository();
 
 type InitializationState = "idle" | "initializing" | "ready" | "failed";
 
@@ -39,11 +36,17 @@ export async function initializeDatabase(): Promise<void> {
 
       try {
         await client.query("SELECT 1");
+        const { rows } = await client.query("SELECT to_regclass('public.logs') AS table_name");
+
+        const tableExists = rows[0]?.table_name === "logs";
+
+        if (!tableExists) {
+          throw new Error("required table 'public.logs' is not available");
+        }
       } finally {
         client.release();
       }
 
-      await logRepository.ensureSchemaReady();
       initializationState = "ready";
     } catch (error) {
       initializationState = "failed";
