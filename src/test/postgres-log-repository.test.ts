@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IngestLogEntry } from "../dto/ingest-request.js";
+import { MAX_LOGS_PER_INSERT } from "../repositories/postgres/log-bulk-insert-query.js";
 
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();
@@ -18,7 +19,16 @@ describe("PostgresLogRepository", () => {
     mockRelease.mockReset();
   });
 
-  it("persists logs with one multi-row insert", async () => {
+  function createEntry(index: number): IngestLogEntry {
+    return {
+      timestamp: `2026-08-03T10:00:${String(index % 60).padStart(2, "0")}.000Z`,
+      level: "info",
+      service: "checkout",
+      message: `event-${index}`,
+    };
+  }
+
+  it("persists logs with one query per chunk", async () => {
     mockConnect.mockResolvedValue({
       query: mockQuery,
       release: mockRelease,
@@ -46,21 +56,26 @@ describe("PostgresLogRepository", () => {
     await repository.saveLogs(entries);
 
     expect(mockQuery).toHaveBeenCalledTimes(1);
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining("VALUES ($1, $2, $3, $4, $5), ($6, $7, $8, $9, $10)"),
-      [
-        "2026-08-03T10:00:00.000Z",
-        "info",
-        "checkout",
-        "created",
-        { requestId: "req-1" },
-        "2026-08-03T10:00:01.000Z",
-        "error",
-        "billing",
-        "failed",
-        {},
-      ]
-    );
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining("INSERT INTO public.logs"), expect.any(Array));
+    expect(mockRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it("splits very large batches into multiple insert queries", async () => {
+    mockConnect.mockResolvedValue({
+      query: mockQuery,
+      release: mockRelease,
+    });
+    mockQuery.mockResolvedValue({ rowCount: MAX_LOGS_PER_INSERT });
+
+    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const repository = new PostgresLogRepository();
+    const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) => createEntry(index));
+
+    await repository.saveLogs(entries);
+
+    expect(mockQuery).toHaveBeenCalledTimes(2);
+    expect(mockQuery.mock.calls[0]?.[1]).toHaveLength(MAX_LOGS_PER_INSERT * 5);
+    expect(mockQuery.mock.calls[1]?.[1]).toHaveLength(5);
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 
