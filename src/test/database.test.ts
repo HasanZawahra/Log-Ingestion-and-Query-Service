@@ -10,12 +10,6 @@ vi.mock("pg", () => ({
   }),
 }));
 
-vi.mock("../repositories/postgres/log-repository.js", () => ({
-  PostgresLogRepository: vi.fn(function (this: { ensureSchemaReady: () => Promise<void> }) {
-    this.ensureSchemaReady = vi.fn().mockResolvedValue(undefined);
-  }),
-}));
-
 describe("database initialization", () => {
   beforeEach(() => {
     vi.resetModules();
