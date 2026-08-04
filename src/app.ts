@@ -4,10 +4,12 @@ import { LogController } from "./controllers/log-controller.js";
 import { PostgresLogRepository } from "./repositories/postgres/log-repository.js";
 import { HealthService } from "./services/implementations/health-service.js";
 import { LogService } from "./services/implementations/log-service.js";
+import { jsonParseErrorHandler } from "./utils/middleware.js";
 
 export const app = express();
 
 app.use(express.json());
+app.use(jsonParseErrorHandler);
 
 const healthService = new HealthService();
 const healthController = new HealthController(healthService);
@@ -17,3 +19,5 @@ const logController = new LogController(logService);
 
 app.get("/health", (req, res) => healthController.getHealth(req, res));
 app.post("/logs", (req, res) => logController.ingestLogs(req, res));
+
+
