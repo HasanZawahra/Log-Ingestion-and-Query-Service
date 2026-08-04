@@ -1,4 +1,4 @@
-import type { IngestLogEntry } from "../../dto/ingest-request.js";
+import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
 import { EmptyBulkInsertError } from "../../errors/empty-bulk-insert-error.js";
 
 const LOG_INSERT_FIELD_COUNT = 5;

@@ -1,5 +1,5 @@
-import type { IngestLogEntry, IngestRequest } from "../dto/ingest-request.js";
-import type { RejectedEntry } from "../dto/ingest-response.js";
+import type { IngestLogEntry, IngestRequest } from "../dto/ingest/ingest-request.js";
+import type { RejectedEntry } from "../dto/ingest/ingest-response.js";
 
 const VALID_LEVELS = ["debug", "info", "warn", "error"] as const;
 

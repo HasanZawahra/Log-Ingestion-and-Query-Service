@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { LogController } from "../controllers/log-controller.js";
-import type { IngestRequest } from "../dto/ingest-request.js";
-import type { IngestResponse } from "../dto/ingest-response.js";
+import type { IngestRequest } from "../dto/ingest/ingest-request.js";
+import type { IngestResponse } from "../dto/ingest/ingest-response.js";
 import { AllEntriesRejectedError } from "../errors/all-entries-rejected-error.js";
 import { InvalidRequestBodyError } from "../errors/invalid-request-body-error.js";
 import type { ILogService } from "../services/interfaces/log-service.js";

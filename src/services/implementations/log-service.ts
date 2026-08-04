@@ -1,5 +1,5 @@
-import type { IngestRequest } from "../../dto/ingest-request.js";
-import type { IngestResponse } from "../../dto/ingest-response.js";
+import type { IngestRequest } from "../../dto/ingest/ingest-request.js";
+import type { IngestResponse } from "../../dto/ingest/ingest-response.js";
 import { AllEntriesRejectedError } from "../../errors/all-entries-rejected-error.js";
 import { validateBatch } from "../../validation/log-validator.js";
 import type { ILogService } from "../interfaces/log-service.js";

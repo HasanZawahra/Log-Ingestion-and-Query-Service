@@ -1,5 +1,5 @@
 import { pool } from "../../config/database.js";
-import type { IngestLogEntry } from "../../dto/ingest-request.js";
+import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
 import { MissingLogsTableError } from "../../errors/missing-logs-table-error.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";
 import { buildBulkInsert, chunkLogEntries } from "./log-bulk-insert-query.js";

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { IngestLogEntry } from "../dto/ingest-request.js";
+import type { IngestLogEntry } from "../dto/ingest/ingest-request.js";
 import { EmptyBulkInsertError } from "../errors/empty-bulk-insert-error.js";
 import {
   buildBulkInsert,

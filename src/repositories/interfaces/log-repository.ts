@@ -1,4 +1,4 @@
-import type { IngestLogEntry } from "../../dto/ingest-request.js";
+import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
 
 export interface ILogRepository {
   ensureSchemaReady(): Promise<void>;

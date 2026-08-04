@@ -1,5 +1,5 @@
 import { AppError } from "./app-error.js";
-import type { IngestResponse } from "../dto/ingest-response.js";
+import type { IngestResponse } from "../dto/ingest/ingest-response.js";
 
 export class AllEntriesRejectedError extends AppError {
   constructor(private readonly response: IngestResponse) {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { IngestRequest } from "../dto/ingest-request.js";
+import type { IngestRequest } from "../dto/ingest/ingest-request.js";
 import { AllEntriesRejectedError } from "../errors/all-entries-rejected-error.js";
 import { LogService } from "../services/implementations/log-service.js";
 import type { ILogRepository } from "../repositories/interfaces/log-repository.js";
