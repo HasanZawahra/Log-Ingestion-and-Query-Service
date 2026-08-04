@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { ServiceUnavailableError } from "../errors/service-unavailable-error.js";
 import type { IHealthService } from "../services/interfaces/health-service.js";
 
 export class HealthController {
@@ -8,7 +9,7 @@ export class HealthController {
     const isHealthy = await this.healthService.checkHealth();
 
     if (!isHealthy) {
-      return res.status(503).json({ status: "unavailable" });
+      throw new ServiceUnavailableError();
     }
 
     return res.status(200).json({ status: "ok" });
