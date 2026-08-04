@@ -1,10 +1,11 @@
 import type { IngestLogLevel } from "../dto/ingest/ingest-request.js";
 import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
-
-export const MIN_LOG_QUERY_LIMIT = 1;
-export const MAX_LOG_QUERY_LIMIT = 1000;
-
-const VALID_LEVELS = ["debug", "info", "warn", "error"] as const;
+import {
+  LOG_LEVELS,
+  LOG_QUERY_CURSOR_ENCODING,
+  MAX_LOG_QUERY_LIMIT,
+  MIN_LOG_QUERY_LIMIT,
+} from "../constants/log.js";
 
 export interface LogQueryValidationResult {
   value: LogQueryRequest | null;
@@ -145,7 +146,7 @@ export function validateTimeRange(since: unknown, until: unknown): string[] {
 }
 
 export function validateLogLevel(level: unknown): string[] {
-  if (typeof level !== "string" || !VALID_LEVELS.includes(level as IngestLogLevel)) {
+  if (typeof level !== "string" || !LOG_LEVELS.includes(level as IngestLogLevel)) {
     return ["level must be one of: debug, info, warn, error"];
   }
 
@@ -169,12 +170,12 @@ export function validateCursor(cursor: unknown): string[] {
 }
 
 export function encodeLogCursor(cursor: LogCursor): string {
-  return Buffer.from(JSON.stringify(cursor), "utf8").toString("base64url");
+  return Buffer.from(JSON.stringify(cursor), "utf8").toString(LOG_QUERY_CURSOR_ENCODING);
 }
 
 export function decodeLogCursor(cursor: string): LogCursor | null {
   try {
-    const json = Buffer.from(cursor, "base64url").toString("utf8");
+    const json = Buffer.from(cursor, LOG_QUERY_CURSOR_ENCODING).toString("utf8");
     if (encodeLogCursorFromJson(json) !== cursor) {
       return null;
     }
@@ -216,7 +217,7 @@ function parseStringParam(value: unknown, requireNonEmpty = true): string | null
 }
 
 function parseLevelParam(value: unknown): IngestLogLevel | null {
-  if (typeof value !== "string" || !VALID_LEVELS.includes(value as IngestLogLevel)) {
+  if (typeof value !== "string" || !LOG_LEVELS.includes(value as IngestLogLevel)) {
     return null;
   }
 
@@ -254,5 +255,5 @@ function parseLimitParam(value: unknown): number | null {
 }
 
 function encodeLogCursorFromJson(json: string): string {
-  return Buffer.from(json, "utf8").toString("base64url");
+  return Buffer.from(json, "utf8").toString(LOG_QUERY_CURSOR_ENCODING);
 }

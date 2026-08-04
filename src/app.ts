@@ -1,6 +1,7 @@
 import express from "express";
 import { HealthController } from "./controllers/health-controller.js";
 import { LogController } from "./controllers/log-controller.js";
+import { HEALTH_ROUTE, LOGS_ROUTE } from "./constants/routes.js";
 import { PostgresLogRepository } from "./repositories/postgres/log-repository.js";
 import { HealthService } from "./services/implementations/health-service.js";
 import { LogService } from "./services/implementations/log-service.js";
@@ -16,8 +17,8 @@ const logRepository = new PostgresLogRepository();
 const logService = new LogService(logRepository);
 const logController = new LogController(logService);
 
-app.get("/health", (req, res) => healthController.getHealth(req, res));
-app.post("/logs", (req, res) => logController.ingestLogs(req, res));
+app.get(HEALTH_ROUTE, (req, res) => healthController.getHealth(req, res));
+app.post(LOGS_ROUTE, (req, res) => logController.ingestLogs(req, res));
 
 app.use(jsonParseErrorHandler);
 app.use(applicationErrorHandler);

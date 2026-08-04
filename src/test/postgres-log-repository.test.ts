@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MAX_LOGS_PER_INSERT } from "../constants/log.js";
 import type { IngestLogEntry } from "../dto/ingest/ingest-request.js";
 import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
-import { MAX_LOGS_PER_INSERT } from "../repositories/postgres/log-bulk-insert-query.js";
 
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();

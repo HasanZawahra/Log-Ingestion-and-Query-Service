@@ -1,4 +1,5 @@
 import { pool } from "../../config/database.js";
+import { LOGS_TABLE_EXISTENCE_QUERY } from "../../constants/database.js";
 import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
 import { MissingLogsTableError } from "../../errors/missing-logs-table-error.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";
@@ -9,7 +10,7 @@ export class PostgresLogRepository implements ILogRepository {
     const client = await pool.connect();
 
     try {
-      const { rows } = await client.query("SELECT to_regclass('public.logs') AS table_name");
+      const { rows } = await client.query(LOGS_TABLE_EXISTENCE_QUERY);
 
       const tableExists = rows[0]?.table_name === "logs";
 

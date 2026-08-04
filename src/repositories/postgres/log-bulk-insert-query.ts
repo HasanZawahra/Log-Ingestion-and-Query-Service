@@ -1,9 +1,10 @@
 import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
+import {
+  LOG_INSERT_FIELD_COUNT,
+  MAX_LOGS_PER_INSERT,
+} from "../../constants/log.js";
+import { PUBLIC_LOGS_TABLE_NAME } from "../../constants/database.js";
 import { EmptyBulkInsertError } from "../../errors/empty-bulk-insert-error.js";
-
-const LOG_INSERT_FIELD_COUNT = 5;
-
-export const MAX_LOGS_PER_INSERT = 1000;
 
 export interface BulkInsertQuery {
   text: string;
@@ -32,7 +33,7 @@ export function buildBulkInsert(entries: IngestLogEntry[]): BulkInsertQuery {
 
   return {
     text: `
-      INSERT INTO public.logs (timestamp, level, service, message, attributes)
+      INSERT INTO ${PUBLIC_LOGS_TABLE_NAME} (timestamp, level, service, message, attributes)
       VALUES ${valuePlaceholders}
     `,
     values,
