@@ -57,7 +57,10 @@ describe("PostgresLogRepository", () => {
     await repository.saveLogs(entries);
 
     expect(mockQuery).toHaveBeenCalledTimes(1);
-    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining("INSERT INTO public.logs"), expect.any(Array));
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO public.logs"),
+      expect.any(Array)
+    );
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 
@@ -70,7 +73,9 @@ describe("PostgresLogRepository", () => {
 
     const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
-    const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) => createEntry(index));
+    const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) =>
+      createEntry(index)
+    );
 
     await repository.saveLogs(entries);
 

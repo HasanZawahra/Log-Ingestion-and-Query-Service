@@ -51,10 +51,18 @@ describe("log validation", () => {
   });
 
   it("validates message, service, and attributes structure", () => {
-    expect(validateLog({ timestamp: "2024-01-01T00:00:00Z", level: "error", service: "api", message: "ok" }, 0)).toEqual([]);
-    expect(validateLog({ timestamp: "2024-01-01T00:00:00Z", level: "error", service: "  ", message: "ok" }, 1)).toEqual([
-      "service must be a non-empty string",
-    ]);
+    expect(
+      validateLog(
+        { timestamp: "2024-01-01T00:00:00Z", level: "error", service: "api", message: "ok" },
+        0
+      )
+    ).toEqual([]);
+    expect(
+      validateLog(
+        { timestamp: "2024-01-01T00:00:00Z", level: "error", service: "  ", message: "ok" },
+        1
+      )
+    ).toEqual(["service must be a non-empty string"]);
 
     expect(validateAttributes({ ok: true, nested: { value: true } })).toEqual([
       "attributes must be a flat object with primitive values only",

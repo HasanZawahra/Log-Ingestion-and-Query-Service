@@ -43,7 +43,9 @@ describe("GET /health", () => {
     };
     const controller = new HealthController(healthService);
 
-    await expect(controller.getHealth({ method: "GET", url: "/health" } as never, {} as never)).rejects.toMatchObject({
+    await expect(
+      controller.getHealth({ method: "GET", url: "/health" } as never, {} as never)
+    ).rejects.toMatchObject({
       message: "unavailable",
     });
   });
@@ -74,7 +76,12 @@ describe("POST /logs", () => {
         },
       };
 
-      applicationErrorHandler(new MalformedJsonError(), {} as never, res as never, vi.fn() as never);
+      applicationErrorHandler(
+        new MalformedJsonError(),
+        {} as never,
+        res as never,
+        vi.fn() as never
+      );
     });
 
     expect(response.status).toBe(400);

@@ -151,12 +151,7 @@
     "public.log_level": {
       "name": "log_level",
       "schema": "public",
-      "values": [
-        "debug",
-        "info",
-        "warn",
-        "error"
-      ]
+      "values": ["debug", "info", "warn", "error"]
     }
   },
   "schemas": {},

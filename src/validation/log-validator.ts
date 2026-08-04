@@ -37,7 +37,8 @@ export function validateBatch(request: IngestRequest): {
 }
 
 export function validateLog(entry: unknown, index: number): string[] {
-  const candidate = typeof entry === "object" && entry !== null && !Array.isArray(entry) ? entry : {};
+  const candidate =
+    typeof entry === "object" && entry !== null && !Array.isArray(entry) ? entry : {};
 
   const errors = [
     ...validateTimestamp((candidate as Partial<IngestLogEntry>).timestamp),
@@ -62,7 +63,12 @@ export function validateAttributes(attributes: unknown): string[] {
   const entries = Object.entries(attributes as Record<string, unknown>);
 
   for (const [, value] of entries) {
-    if (value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    if (
+      value === null ||
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
       continue;
     }
 

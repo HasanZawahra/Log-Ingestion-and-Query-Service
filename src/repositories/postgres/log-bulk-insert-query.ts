@@ -39,7 +39,10 @@ export function buildBulkInsert(entries: IngestLogEntry[]): BulkInsertQuery {
   };
 }
 
-export function chunkLogEntries(entries: IngestLogEntry[], chunkSize = MAX_LOGS_PER_INSERT): IngestLogEntry[][] {
+export function chunkLogEntries(
+  entries: IngestLogEntry[],
+  chunkSize = MAX_LOGS_PER_INSERT
+): IngestLogEntry[][] {
   const chunks: IngestLogEntry[][] = [];
 
   for (let index = 0; index < entries.length; index += chunkSize) {

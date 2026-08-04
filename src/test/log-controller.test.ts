@@ -55,9 +55,9 @@ describe("LogController", () => {
     };
     const controller = new LogController(logService);
 
-    await expect(controller.ingestLogs({ body: { entries: "not-an-array" } } as never, {} as never)).rejects.toBeInstanceOf(
-      InvalidRequestBodyError
-    );
+    await expect(
+      controller.ingestLogs({ body: { entries: "not-an-array" } } as never, {} as never)
+    ).rejects.toBeInstanceOf(InvalidRequestBodyError);
     expect(logService.ingestLogs).not.toHaveBeenCalled();
   });
 
