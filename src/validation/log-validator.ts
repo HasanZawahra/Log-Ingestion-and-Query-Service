@@ -3,6 +3,14 @@ import type { IngestResponse, RejectedEntry } from "../dto/ingest-response.js";
 
 const VALID_LEVELS = ["debug", "info", "warn", "error"] as const;
 
+export function isIngestRequest(value: unknown): value is IngestRequest {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  return Array.isArray((value as { entries?: unknown }).entries);
+}
+
 export function validateBatch(request: IngestRequest): {
   validEntries: IngestLogEntry[];
   rejectedEntries: RejectedEntry[];
@@ -28,13 +36,15 @@ export function validateBatch(request: IngestRequest): {
   return { validEntries, rejectedEntries };
 }
 
-export function validateLog(entry: IngestLogEntry, index: number): string[] {
+export function validateLog(entry: unknown, index: number): string[] {
+  const candidate = typeof entry === "object" && entry !== null && !Array.isArray(entry) ? entry : {};
+
   const errors = [
-    ...validateTimestamp(entry.timestamp),
-    ...validateLevel(entry.level),
-    ...validateMessage(entry.message),
-    ...validateService(entry.service),
-    ...validateAttributes(entry.attributes),
+    ...validateTimestamp((candidate as Partial<IngestLogEntry>).timestamp),
+    ...validateLevel((candidate as Partial<IngestLogEntry>).level),
+    ...validateMessage((candidate as Partial<IngestLogEntry>).message),
+    ...validateService((candidate as Partial<IngestLogEntry>).service),
+    ...validateAttributes((candidate as Partial<IngestLogEntry>).attributes),
   ];
 
   return errors;
@@ -62,7 +72,7 @@ export function validateAttributes(attributes: unknown): string[] {
   return [];
 }
 
-export function validateTimestamp(timestamp: string): string[] {
+export function validateTimestamp(timestamp: unknown): string[] {
   if (typeof timestamp !== "string") {
     return ["timestamp must be a valid ISO 8601 date"];
   }
@@ -83,7 +93,7 @@ export function validateTimestamp(timestamp: string): string[] {
   return [];
 }
 
-export function validateLevel(level: string): string[] {
+export function validateLevel(level: unknown): string[] {
   if (typeof level !== "string" || !VALID_LEVELS.includes(level as (typeof VALID_LEVELS)[number])) {
     return ["level must be one of: debug, info, warn, error"];
   }
@@ -91,7 +101,7 @@ export function validateLevel(level: string): string[] {
   return [];
 }
 
-function validateMessage(message: string): string[] {
+function validateMessage(message: unknown): string[] {
   if (typeof message !== "string" || message.trim().length === 0) {
     return ["message must be a non-empty string"];
   }
@@ -99,7 +109,7 @@ function validateMessage(message: string): string[] {
   return [];
 }
 
-function validateService(service: string): string[] {
+function validateService(service: unknown): string[] {
   if (typeof service !== "string" || service.trim().length === 0) {
     return ["service must be a non-empty string"];
   }

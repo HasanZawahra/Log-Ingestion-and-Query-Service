@@ -2,7 +2,7 @@ import { app } from "./app.js";
 import { initializeDatabase } from "./config/database.js";
 
 export function getPort(): number {
-  const portValue = process.env.PORT ?? "8080";
+  const portValue = process.env.PORT!;
   const parsed = Number(portValue);
 
   return Number.isNaN(parsed) ? 8080 : parsed;
