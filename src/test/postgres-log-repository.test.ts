@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { IngestLogEntry } from "../dto/ingest-request.js";
+import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
 import { MAX_LOGS_PER_INSERT } from "../repositories/postgres/log-bulk-insert-query.js";
 
 const mockConnect = vi.fn();
@@ -56,7 +57,10 @@ describe("PostgresLogRepository", () => {
     await repository.saveLogs(entries);
 
     expect(mockQuery).toHaveBeenCalledTimes(1);
-    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining("INSERT INTO public.logs"), expect.any(Array));
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO public.logs"),
+      expect.any(Array)
+    );
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 
@@ -69,7 +73,9 @@ describe("PostgresLogRepository", () => {
 
     const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
-    const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) => createEntry(index));
+    const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) =>
+      createEntry(index)
+    );
 
     await repository.saveLogs(entries);
 
@@ -86,5 +92,18 @@ describe("PostgresLogRepository", () => {
     await repository.saveLogs([]);
 
     expect(mockConnect).not.toHaveBeenCalled();
+  });
+
+  it("throws a typed error when the logs table is missing", async () => {
+    mockConnect.mockResolvedValue({
+      query: mockQuery.mockResolvedValueOnce({ rows: [{ table_name: null }] }),
+      release: mockRelease,
+    });
+
+    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const repository = new PostgresLogRepository();
+
+    await expect(repository.ensureSchemaReady()).rejects.toBeInstanceOf(MissingLogsTableError);
+    expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 });

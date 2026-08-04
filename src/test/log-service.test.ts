@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { IngestRequest } from "../dto/ingest-request.js";
+import { AllEntriesRejectedError } from "../errors/all-entries-rejected-error.js";
 import { LogService } from "../services/implementations/log-service.js";
 import type { ILogRepository } from "../repositories/interfaces/log-repository.js";
 
@@ -42,5 +43,30 @@ describe("LogService", () => {
     expect(response.accepted).toBe(1);
     expect(response.rejected).toBe(1);
     expect(response.rejectedEntries[0]?.reason).toContain("message");
+  });
+
+  it("throws when every entry is rejected", async () => {
+    const saveLogs = vi.fn();
+    const repository: ILogRepository = {
+      ensureSchemaReady: vi.fn(),
+      saveLogs,
+    };
+
+    const service = new LogService(repository);
+
+    await expect(
+      service.ingestLogs({
+        entries: [
+          {
+            timestamp: new Date(Date.now() + 10 * 60_000).toISOString(),
+            level: "warn",
+            service: "billing",
+            message: "",
+          },
+        ],
+      })
+    ).rejects.toBeInstanceOf(AllEntriesRejectedError);
+
+    expect(saveLogs).not.toHaveBeenCalled();
   });
 });

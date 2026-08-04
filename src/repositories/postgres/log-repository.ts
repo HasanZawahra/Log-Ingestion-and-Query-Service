@@ -1,5 +1,6 @@
 import { pool } from "../../config/database.js";
 import type { IngestLogEntry } from "../../dto/ingest-request.js";
+import { MissingLogsTableError } from "../../errors/missing-logs-table-error.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";
 import { buildBulkInsert, chunkLogEntries } from "./log-bulk-insert-query.js";
 
@@ -13,7 +14,7 @@ export class PostgresLogRepository implements ILogRepository {
       const tableExists = rows[0]?.table_name === "logs";
 
       if (!tableExists) {
-        throw new Error("required table 'public.logs' is not available");
+        throw new MissingLogsTableError();
       }
     } finally {
       client.release();
