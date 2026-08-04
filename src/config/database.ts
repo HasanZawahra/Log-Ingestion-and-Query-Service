@@ -1,10 +1,12 @@
 import "dotenv/config";
 import { Pool } from "pg";
+import { MissingDatabaseUrlError } from "../errors/missing-database-url-error.js";
+import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
 
 const connectionString = process.env.DATABASE_URL!;
 
 if (!connectionString) {
-  throw new Error("DATABASE_URL must be set");
+  throw new MissingDatabaseUrlError();
 }
 
 export const pool = new Pool({
@@ -41,7 +43,7 @@ export async function initializeDatabase(): Promise<void> {
         const tableExists = rows[0]?.table_name === "logs";
 
         if (!tableExists) {
-          throw new Error("required table 'public.logs' is not available");
+          throw new MissingLogsTableError();
         }
       } finally {
         client.release();

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { IngestLogEntry } from "../dto/ingest-request.js";
+import { EmptyBulkInsertError } from "../errors/empty-bulk-insert-error.js";
 import { buildBulkInsert, chunkLogEntries, MAX_LOGS_PER_INSERT } from "../repositories/postgres/log-bulk-insert-query.js";
 
 function createEntry(index: number): IngestLogEntry {
@@ -48,7 +49,7 @@ describe("buildBulkInsert", () => {
   });
 
   it("rejects empty inserts", () => {
-    expect(() => buildBulkInsert([])).toThrow("cannot build a bulk insert query without log entries");
+    expect(() => buildBulkInsert([])).toThrow(EmptyBulkInsertError);
   });
 });
 

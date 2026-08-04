@@ -1,4 +1,5 @@
 import type { IngestLogEntry } from "../../dto/ingest-request.js";
+import { EmptyBulkInsertError } from "../../errors/empty-bulk-insert-error.js";
 
 const LOG_INSERT_FIELD_COUNT = 5;
 
@@ -11,7 +12,7 @@ export interface BulkInsertQuery {
 
 export function buildBulkInsert(entries: IngestLogEntry[]): BulkInsertQuery {
   if (entries.length === 0) {
-    throw new Error("cannot build a bulk insert query without log entries");
+    throw new EmptyBulkInsertError();
   }
 
   const values = entries.flatMap((entry) => [
