@@ -2,19 +2,14 @@ import type { IngestLogLevel } from "../dto/ingest/ingest-request.js";
 import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
 import {
   LOG_LEVELS,
-  LOG_QUERY_CURSOR_ENCODING,
   MAX_LOG_QUERY_LIMIT,
   MIN_LOG_QUERY_LIMIT,
 } from "../constants/log.js";
+import { isValidLogCursor } from "../utils/log-cursor.js";
 
 export interface LogQueryValidationResult {
   value: LogQueryRequest | null;
   errors: string[];
-}
-
-export interface LogCursor {
-  timestamp: string;
-  id: number;
 }
 
 export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
@@ -169,41 +164,6 @@ export function validateCursor(cursor: unknown): string[] {
   return [];
 }
 
-export function encodeLogCursor(cursor: LogCursor): string {
-  return Buffer.from(JSON.stringify(cursor), "utf8").toString(LOG_QUERY_CURSOR_ENCODING);
-}
-
-export function decodeLogCursor(cursor: string): LogCursor | null {
-  try {
-    const json = Buffer.from(cursor, LOG_QUERY_CURSOR_ENCODING).toString("utf8");
-    if (encodeLogCursorFromJson(json) !== cursor) {
-      return null;
-    }
-
-    const parsed = JSON.parse(json) as Record<string, unknown>;
-    if (
-      typeof parsed.timestamp !== "string" ||
-      Number.isNaN(Date.parse(parsed.timestamp)) ||
-      typeof parsed.id !== "number" ||
-      !Number.isInteger(parsed.id) ||
-      parsed.id < 0
-    ) {
-      return null;
-    }
-
-    return {
-      timestamp: parsed.timestamp,
-      id: parsed.id,
-    };
-  } catch {
-    return null;
-  }
-}
-
-export function isValidLogCursor(cursor: string): boolean {
-  return decodeLogCursor(cursor) !== null;
-}
-
 function parseStringParam(value: unknown, requireNonEmpty = true): string | null {
   if (typeof value !== "string") {
     return null;
@@ -252,8 +212,4 @@ function parseLimitParam(value: unknown): number | null {
   }
 
   return parsed;
-}
-
-function encodeLogCursorFromJson(json: string): string {
-  return Buffer.from(json, "utf8").toString(LOG_QUERY_CURSOR_ENCODING);
 }

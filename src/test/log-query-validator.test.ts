@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { MAX_LOG_QUERY_LIMIT, MIN_LOG_QUERY_LIMIT } from "../constants/log.js";
 import {
-  decodeLogCursor,
-  encodeLogCursor,
-  isValidLogCursor,
   parseLogQueryRequest,
   validateCursor,
   validateLimit,
@@ -10,6 +8,7 @@ import {
   validateQueryTimestamp,
   validateTimeRange,
 } from "../validation/log-query-validator.js";
+import { decodeLogCursor, encodeLogCursor, isValidLogCursor } from "../utils/log-cursor.js";
 
 describe("log query validation", () => {
   it("parses a valid query with combined filters", () => {
@@ -70,13 +69,13 @@ describe("log query validation", () => {
       "level must be one of: debug, info, warn, error",
     ]);
 
-    expect(validateLimit("1")).toEqual([]);
-    expect(validateLimit("1000")).toEqual([]);
+    expect(validateLimit(String(MIN_LOG_QUERY_LIMIT))).toEqual([]);
+    expect(validateLimit(String(MAX_LOG_QUERY_LIMIT))).toEqual([]);
     expect(validateLimit("0")).toEqual([
-      "limit must be an integer between 1 and 1000",
+      `limit must be an integer between ${MIN_LOG_QUERY_LIMIT} and ${MAX_LOG_QUERY_LIMIT}`,
     ]);
-    expect(validateLimit("1001")).toEqual([
-      "limit must be an integer between 1 and 1000",
+    expect(validateLimit(String(MAX_LOG_QUERY_LIMIT + 1))).toEqual([
+      `limit must be an integer between ${MIN_LOG_QUERY_LIMIT} and ${MAX_LOG_QUERY_LIMIT}`,
     ]);
   });
 
