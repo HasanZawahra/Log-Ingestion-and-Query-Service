@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MAX_LOG_QUERY_LIMIT } from "../constants/log.js";
 import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
+import { InvalidLogCursorError } from "../errors/invalid-log-cursor-error.js";
 import { buildLogQuery } from "../repositories/postgres/log-query-builder.js";
 import { encodeLogCursor } from "../utils/log-cursor.js";
 
@@ -53,5 +54,13 @@ describe("buildLogQuery", () => {
 
     expect(query.text).toContain("LIMIT $1");
     expect(query.values).toEqual([MAX_LOG_QUERY_LIMIT]);
+  });
+
+  it("throws a custom application error when the cursor is invalid", () => {
+    expect(() =>
+      buildLogQuery({
+        cursor: "not-a-cursor",
+      })
+    ).toThrow(InvalidLogCursorError);
   });
 });
