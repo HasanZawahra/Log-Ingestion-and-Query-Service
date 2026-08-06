@@ -47,8 +47,8 @@ export class PostgresLogAggregateQueryBuilder implements ILogAggregateQueryBuild
       clauses.push(`message ILIKE ${params.push(`%${request.q}%`)}`);
     }
 
-    const attributeFilters = Object.entries(request.attributeFilters ?? {}).sort(([left], [right]) =>
-      left.localeCompare(right)
+    const attributeFilters = Object.entries(request.attributeFilters ?? {}).sort(
+      ([left], [right]) => left.localeCompare(right)
     );
 
     for (const [key, value] of attributeFilters) {

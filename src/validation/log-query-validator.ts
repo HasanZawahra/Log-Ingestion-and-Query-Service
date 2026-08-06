@@ -1,10 +1,6 @@
 import type { IngestLogLevel } from "../dto/ingest/ingest-request.js";
 import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
-import {
-  LOG_LEVELS,
-  MAX_LOG_QUERY_LIMIT,
-  MIN_LOG_QUERY_LIMIT,
-} from "../constants/log.js";
+import { LOG_LEVELS, MAX_LOG_QUERY_LIMIT, MIN_LOG_QUERY_LIMIT } from "../constants/log.js";
 import { isValidLogCursor } from "../utils/log-cursor.js";
 
 export interface LogQueryValidationResult {
@@ -77,7 +73,9 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
   if ("limit" in rawQuery) {
     const limit = parseLimitParam(rawQuery.limit);
     if (limit === null) {
-      errors.push(`limit must be an integer between ${MIN_LOG_QUERY_LIMIT} and ${MAX_LOG_QUERY_LIMIT}`);
+      errors.push(
+        `limit must be an integer between ${MIN_LOG_QUERY_LIMIT} and ${MAX_LOG_QUERY_LIMIT}`
+      );
     } else {
       value.limit = limit;
     }
@@ -127,7 +125,10 @@ export function validateQueryTimestamp(timestamp: unknown, fieldName: "since" | 
 }
 
 export function validateTimeRange(since: unknown, until: unknown): string[] {
-  const errors = [...validateQueryTimestamp(since, "since"), ...validateQueryTimestamp(until, "until")];
+  const errors = [
+    ...validateQueryTimestamp(since, "since"),
+    ...validateQueryTimestamp(until, "until"),
+  ];
 
   if (errors.length > 0) {
     return errors;
@@ -193,7 +194,12 @@ function parseTimestampParam(value: unknown): string | null {
 }
 
 function parseLimitParam(value: unknown): number | null {
-  if (typeof value === "number" && Number.isInteger(value) && value >= MIN_LOG_QUERY_LIMIT && value <= MAX_LOG_QUERY_LIMIT) {
+  if (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= MIN_LOG_QUERY_LIMIT &&
+    value <= MAX_LOG_QUERY_LIMIT
+  ) {
     return value;
   }
 

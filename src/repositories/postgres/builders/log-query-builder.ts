@@ -51,11 +51,13 @@ export class PostgresLogQueryBuilder implements ILogQueryBuilder {
         throw new InvalidLogCursorError();
       }
 
-      clauses.push(`(timestamp, id) < (${params.push(cursor.timestamp)}, ${params.push(cursor.id)})`);
+      clauses.push(
+        `(timestamp, id) < (${params.push(cursor.timestamp)}, ${params.push(cursor.id)})`
+      );
     }
 
-    const attributeFilters = Object.entries(request.attributeFilters ?? {}).sort(([left], [right]) =>
-      left.localeCompare(right)
+    const attributeFilters = Object.entries(request.attributeFilters ?? {}).sort(
+      ([left], [right]) => left.localeCompare(right)
     );
 
     for (const [key, value] of attributeFilters) {

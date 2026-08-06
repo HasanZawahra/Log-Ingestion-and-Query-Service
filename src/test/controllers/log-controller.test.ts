@@ -177,30 +177,32 @@ describe("LogController", () => {
     };
     const controller = new LogController(logService);
 
-    const response = await new Promise<{ status: number; body: LogAggregateResponse }>((resolve) => {
-      const res = {
-        statusCode: 200,
-        status(code: number) {
-          this.statusCode = code;
-          return this;
-        },
-        json(payload: LogAggregateResponse) {
-          resolve({ status: this.statusCode, body: payload });
-          return this;
-        },
-      };
-
-      controller.queryLogAggregates(
-        {
-          query: {
-            since: "2026-08-03T10:00:00.000Z",
-            until: "2026-08-03T11:00:00.000Z",
-            bucket: "1m",
+    const response = await new Promise<{ status: number; body: LogAggregateResponse }>(
+      (resolve) => {
+        const res = {
+          statusCode: 200,
+          status(code: number) {
+            this.statusCode = code;
+            return this;
           },
-        } as never,
-        res as never
-      );
-    });
+          json(payload: LogAggregateResponse) {
+            resolve({ status: this.statusCode, body: payload });
+            return this;
+          },
+        };
+
+        controller.queryLogAggregates(
+          {
+            query: {
+              since: "2026-08-03T10:00:00.000Z",
+              until: "2026-08-03T11:00:00.000Z",
+              bucket: "1m",
+            },
+          } as never,
+          res as never
+        );
+      }
+    );
 
     expect(logService.queryLogAggregates).toHaveBeenCalledWith({
       since: "2026-08-03T10:00:00.000Z",

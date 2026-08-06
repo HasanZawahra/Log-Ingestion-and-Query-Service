@@ -72,7 +72,10 @@ export class PostgresLogRepository implements ILogRepository {
 
       return {
         entries,
-        next_cursor: hasNextPage && lastEntry ? encodeLogCursor({ timestamp: lastEntry.timestamp, id: lastEntry.id }) : null,
+        next_cursor:
+          hasNextPage && lastEntry
+            ? encodeLogCursor({ timestamp: lastEntry.timestamp, id: lastEntry.id })
+            : null,
       };
     } finally {
       client.release();
@@ -114,7 +117,9 @@ function normalizeTimestamp(value: unknown): string {
   return new Date(String(value)).toISOString();
 }
 
-function mapLogAggregateBucket(row: Record<string, unknown>): LogAggregateResponse["buckets"][number] {
+function mapLogAggregateBucket(
+  row: Record<string, unknown>
+): LogAggregateResponse["buckets"][number] {
   return {
     start: normalizeTimestamp(row.start),
     group: row.group === undefined || row.group === null ? null : String(row.group),

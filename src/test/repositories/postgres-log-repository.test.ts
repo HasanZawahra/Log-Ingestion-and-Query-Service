@@ -183,11 +183,8 @@ describe("PostgresLogRepository", () => {
 
   it("queries log aggregates using the injected aggregate query builder", async () => {
     const buildLogAggregateQuery = vi.fn().mockReturnValue({
-      text: "SELECT date_trunc('minute', timestamp) AS start, NULL::text AS \"group\", COUNT(*)::int AS count FROM public.logs WHERE timestamp >= $1 AND timestamp < $2 GROUP BY 1, 2 ORDER BY start ASC, \"group\" ASC NULLS FIRST",
-      values: [
-        "2026-08-03T10:00:00.000Z",
-        "2026-08-03T11:00:00.000Z",
-      ],
+      text: 'SELECT date_trunc(\'minute\', timestamp) AS start, NULL::text AS "group", COUNT(*)::int AS count FROM public.logs WHERE timestamp >= $1 AND timestamp < $2 GROUP BY 1, 2 ORDER BY start ASC, "group" ASC NULLS FIRST',
+      values: ["2026-08-03T10:00:00.000Z", "2026-08-03T11:00:00.000Z"],
     });
 
     mockConnect.mockResolvedValue({
@@ -209,7 +206,10 @@ describe("PostgresLogRepository", () => {
     });
 
     const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
-    const repository = new PostgresLogRepository(undefined as never, { buildLogAggregateQuery } as never);
+    const repository = new PostgresLogRepository(
+      undefined as never,
+      { buildLogAggregateQuery } as never
+    );
 
     const request: LogAggregateRequest = {
       since: "2026-08-03T10:00:00.000Z",
@@ -222,10 +222,7 @@ describe("PostgresLogRepository", () => {
     expect(buildLogAggregateQuery).toHaveBeenCalledWith(request);
     expect(mockQuery).toHaveBeenCalledWith(
       expect.stringContaining("SELECT date_trunc('minute', timestamp) AS start"),
-      [
-        "2026-08-03T10:00:00.000Z",
-        "2026-08-03T11:00:00.000Z",
-      ]
+      ["2026-08-03T10:00:00.000Z", "2026-08-03T11:00:00.000Z"]
     );
     expect(response).toEqual({
       buckets: [

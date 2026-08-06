@@ -1,8 +1,5 @@
 import type { IngestLogEntry } from "../../../dto/ingest/ingest-request.js";
-import {
-  LOG_INSERT_FIELD_COUNT,
-  MAX_LOGS_PER_INSERT,
-} from "../../../constants/log.js";
+import { LOG_INSERT_FIELD_COUNT, MAX_LOGS_PER_INSERT } from "../../../constants/log.js";
 import { PUBLIC_LOGS_TABLE_NAME } from "../../../constants/database.js";
 import { EmptyBulkInsertError } from "../../../errors/repository/empty-bulk-insert-error.js";
 

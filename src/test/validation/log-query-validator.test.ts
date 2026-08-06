@@ -65,9 +65,7 @@ describe("log query validation", () => {
 
   it("validates supported log levels and limit range", () => {
     expect(validateLogLevel("warn")).toEqual([]);
-    expect(validateLogLevel("verbose")).toEqual([
-      "level must be one of: debug, info, warn, error",
-    ]);
+    expect(validateLogLevel("verbose")).toEqual(["level must be one of: debug, info, warn, error"]);
 
     expect(validateLimit(String(MIN_LOG_QUERY_LIMIT))).toEqual([]);
     expect(validateLimit(String(MAX_LOG_QUERY_LIMIT))).toEqual([]);

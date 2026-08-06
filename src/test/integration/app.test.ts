@@ -122,7 +122,10 @@ describe("POST /logs", () => {
   });
 
   it("serializes query validation errors into responses", async () => {
-    const response = await new Promise<{ status: number; body: { error: string; issues: string[] } }>((resolve) => {
+    const response = await new Promise<{
+      status: number;
+      body: { error: string; issues: string[] };
+    }>((resolve) => {
       const res = {
         statusCode: 200,
         status(code: number) {
@@ -151,7 +154,10 @@ describe("POST /logs", () => {
   });
 
   it("serializes aggregate query validation errors into responses", async () => {
-    const response = await new Promise<{ status: number; body: { error: string; issues: string[] } }>((resolve) => {
+    const response = await new Promise<{
+      status: number;
+      body: { error: string; issues: string[] };
+    }>((resolve) => {
       const res = {
         statusCode: 200,
         status(code: number) {

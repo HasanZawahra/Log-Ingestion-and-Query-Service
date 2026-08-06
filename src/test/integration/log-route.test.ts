@@ -13,11 +13,15 @@ describe("/logs routes", () => {
   it("registers the log routes on the Express app", () => {
     const router = (app as unknown as { router: { stack: ExpressRouteLayer[] } }).router;
 
-    const getLogsRoute = router.stack.find((layer) => layer.route?.path === LOGS_ROUTE && layer.route?.methods.get);
+    const getLogsRoute = router.stack.find(
+      (layer) => layer.route?.path === LOGS_ROUTE && layer.route?.methods.get
+    );
     const aggregateLogsRoute = router.stack.find(
       (layer) => layer.route?.path === LOGS_AGGREGATE_ROUTE && layer.route?.methods.get
     );
-    const postLogsRoute = router.stack.find((layer) => layer.route?.path === LOGS_ROUTE && layer.route?.methods.post);
+    const postLogsRoute = router.stack.find(
+      (layer) => layer.route?.path === LOGS_ROUTE && layer.route?.methods.post
+    );
 
     expect(getLogsRoute?.route?.methods.get).toBe(true);
     expect(aggregateLogsRoute?.route?.methods.get).toBe(true);
