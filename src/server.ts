@@ -1,11 +1,12 @@
 import { app } from "./app.js";
+import { DEFAULT_PORT } from "./constants/app.js";
 import { initializeDatabase } from "./config/database.js";
 
 export function getPort(): number {
   const portValue = process.env.PORT!;
   const parsed = Number(portValue);
 
-  return Number.isNaN(parsed) ? 8080 : parsed;
+  return Number.isNaN(parsed) ? DEFAULT_PORT : parsed;
 }
 
 async function startServer() {

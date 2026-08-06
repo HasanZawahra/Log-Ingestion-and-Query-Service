@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { IngestLogEntry } from "../dto/ingest-request.js";
+import { MAX_LOGS_PER_INSERT } from "../constants/log.js";
+import type { IngestLogEntry } from "../dto/ingest/ingest-request.js";
+import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
+import { encodeLogCursor } from "../utils/log-cursor.js";
 import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
-import { MAX_LOGS_PER_INSERT } from "../repositories/postgres/log-bulk-insert-query.js";
 
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();
@@ -104,6 +106,76 @@ describe("PostgresLogRepository", () => {
     const repository = new PostgresLogRepository();
 
     await expect(repository.ensureSchemaReady()).rejects.toBeInstanceOf(MissingLogsTableError);
+    expect(mockRelease).toHaveBeenCalledTimes(1);
+  });
+
+  it("queries logs using the injected query builder", async () => {
+    const buildLogQuery = vi.fn().mockReturnValue({
+      text: "SELECT id, timestamp, level, service, message, attributes FROM public.logs LIMIT $1",
+      values: [2],
+    });
+
+    mockConnect.mockResolvedValue({
+      query: mockQuery.mockResolvedValue({
+        rows: [
+          {
+            id: 9,
+            timestamp: new Date("2026-08-03T10:00:00.000Z"),
+            level: "info",
+            service: "checkout",
+            message: "created",
+            attributes: {},
+          },
+          {
+            id: 8,
+            timestamp: new Date("2026-08-03T09:59:00.000Z"),
+            level: "info",
+            service: "checkout",
+            message: "older",
+            attributes: {},
+          },
+        ],
+      }),
+      release: mockRelease,
+    });
+
+    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const repository = new PostgresLogRepository({ buildLogQuery } as never);
+
+    const request: LogQueryRequest = {
+      service: "checkout",
+      limit: 1,
+      cursor: encodeLogCursor({
+        timestamp: "2026-08-03T10:01:00.000Z",
+        id: 10,
+      }),
+    };
+
+    const response = await repository.queryLogs(request);
+
+    expect(buildLogQuery).toHaveBeenCalledWith({
+      ...request,
+      limit: 2,
+    });
+    expect(mockQuery).toHaveBeenCalledWith(
+      "SELECT id, timestamp, level, service, message, attributes FROM public.logs LIMIT $1",
+      [2]
+    );
+    expect(response.entries).toHaveLength(1);
+    expect(response.entries[0]).toEqual({
+      id: 9,
+      timestamp: "2026-08-03T10:00:00.000Z",
+      level: "info",
+      service: "checkout",
+      message: "created",
+      attributes: {},
+    });
+    expect(response.next_cursor).toEqual(
+      encodeLogCursor({
+        timestamp: "2026-08-03T10:00:00.000Z",
+        id: 9,
+      })
+    );
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 });

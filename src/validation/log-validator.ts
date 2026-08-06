@@ -1,7 +1,6 @@
-import type { IngestLogEntry, IngestRequest } from "../dto/ingest-request.js";
-import type { RejectedEntry } from "../dto/ingest-response.js";
-
-const VALID_LEVELS = ["debug", "info", "warn", "error"] as const;
+import type { IngestLogEntry, IngestRequest } from "../dto/ingest/ingest-request.js";
+import type { RejectedEntry } from "../dto/ingest/ingest-response.js";
+import { LOG_LEVELS } from "../constants/log.js";
 
 export function isIngestRequest(value: unknown): value is IngestRequest {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -100,7 +99,7 @@ export function validateTimestamp(timestamp: unknown): string[] {
 }
 
 export function validateLevel(level: unknown): string[] {
-  if (typeof level !== "string" || !VALID_LEVELS.includes(level as (typeof VALID_LEVELS)[number])) {
+  if (typeof level !== "string" || !LOG_LEVELS.includes(level as (typeof LOG_LEVELS)[number])) {
     return ["level must be one of: debug, info, warn, error"];
   }
 

@@ -1,9 +1,14 @@
 import "dotenv/config";
 import { Pool } from "pg";
+import {
+  DATABASE_URL_ENV_VAR,
+  LOGS_TABLE_EXISTENCE_QUERY,
+  MAX_DATABASE_CONNECTIONS,
+} from "../constants/database.js";
 import { MissingDatabaseUrlError } from "../errors/missing-database-url-error.js";
 import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
 
-const connectionString = process.env.DATABASE_URL!;
+const connectionString = process.env[DATABASE_URL_ENV_VAR]!;
 
 if (!connectionString) {
   throw new MissingDatabaseUrlError();
@@ -11,6 +16,7 @@ if (!connectionString) {
 
 export const pool = new Pool({
   connectionString,
+  max: MAX_DATABASE_CONNECTIONS,
 });
 
 type InitializationState = "idle" | "initializing" | "ready" | "failed";
@@ -38,7 +44,7 @@ export async function initializeDatabase(): Promise<void> {
 
       try {
         await client.query("SELECT 1");
-        const { rows } = await client.query("SELECT to_regclass('public.logs') AS table_name");
+        const { rows } = await client.query(LOGS_TABLE_EXISTENCE_QUERY);
 
         const tableExists = rows[0]?.table_name === "logs";
 

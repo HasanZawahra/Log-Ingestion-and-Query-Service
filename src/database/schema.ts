@@ -9,11 +9,13 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import { LOGS_TABLE_NAME } from "../constants/database.js";
+import { LOG_LEVELS } from "../constants/log.js";
 
-export const logLevel = pgEnum("log_level", ["debug", "info", "warn", "error"]);
+export const logLevel = pgEnum("log_level", [...LOG_LEVELS]);
 
 export const logs = pgTable(
-  "logs",
+  LOGS_TABLE_NAME,
   {
     id: bigserial("id", { mode: "number" }).primaryKey(),
     timestamp: timestamp("timestamp", { withTimezone: true }).notNull(),

@@ -1,4 +1,4 @@
-import type { IngestLogEntry } from "./ingest-request.js";
+import { IngestLogEntry } from "./ingest-request.js";
 
 export interface RejectedEntry {
   index: number;
