@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { app } from "../app.js";
-import { LOGS_ROUTE } from "../constants/routes.js";
+import { app } from "../../app.js";
+import { LOGS_ROUTE } from "../../constants/routes.js";
 
 interface ExpressRouteLayer {
   route?: {

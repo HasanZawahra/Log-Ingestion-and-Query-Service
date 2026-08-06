@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { HealthController } from "../controllers/health-controller.js";
-import { MalformedJsonError } from "../errors/malformed-json-error.js";
-import { InvalidLogQueryError } from "../errors/invalid-log-query-error.js";
-import { InvalidLogCursorError } from "../errors/invalid-log-cursor-error.js";
-import type { IHealthService } from "../services/interfaces/health-service.js";
-import { applicationErrorHandler, jsonParseErrorHandler } from "../utils/middleware.js";
+import { HealthController } from "../../controllers/health-controller.js";
+import { MalformedJsonError } from "../../errors/malformed-json-error.js";
+import { InvalidLogQueryError } from "../../errors/invalid-log-query-error.js";
+import { InvalidLogCursorError } from "../../errors/invalid-log-cursor-error.js";
+import type { IHealthService } from "../../services/interfaces/health-service.js";
+import { applicationErrorHandler, jsonParseErrorHandler } from "../../utils/middleware.js";
 
 describe("GET /health", () => {
   it("returns ok when the database is healthy", async () => {

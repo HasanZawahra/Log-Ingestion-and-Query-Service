@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPort } from "../server.js";
+import { getPort } from "../../server.js";
 
 describe("getPort", () => {
   it("defaults to 8080 when PORT is not set", () => {

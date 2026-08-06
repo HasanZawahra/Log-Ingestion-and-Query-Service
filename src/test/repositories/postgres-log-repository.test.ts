@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { MAX_LOGS_PER_INSERT } from "../constants/log.js";
-import type { IngestLogEntry } from "../dto/ingest/ingest-request.js";
-import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
-import { encodeLogCursor } from "../utils/log-cursor.js";
-import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
+import { MAX_LOGS_PER_INSERT } from "../../constants/log.js";
+import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
+import type { LogQueryRequest } from "../../dto/log-query/log-query-request.js";
+import { encodeLogCursor } from "../../utils/log-cursor.js";
+import { MissingLogsTableError } from "../../errors/missing-logs-table-error.js";
 
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();
 const mockRelease = vi.fn();
 
-vi.mock("../config/database.js", () => ({
+vi.mock("../../config/database.js", () => ({
   pool: {
     connect: mockConnect,
   },
@@ -38,7 +38,7 @@ describe("PostgresLogRepository", () => {
     });
     mockQuery.mockResolvedValue({ rowCount: 2 });
 
-    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
     const entries: IngestLogEntry[] = [
       {
@@ -73,7 +73,7 @@ describe("PostgresLogRepository", () => {
     });
     mockQuery.mockResolvedValue({ rowCount: MAX_LOGS_PER_INSERT });
 
-    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
     const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) =>
       createEntry(index)
@@ -88,7 +88,7 @@ describe("PostgresLogRepository", () => {
   });
 
   it("does not connect when there are no logs to persist", async () => {
-    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
 
     await repository.saveLogs([]);
@@ -102,7 +102,7 @@ describe("PostgresLogRepository", () => {
       release: mockRelease,
     });
 
-    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
 
     await expect(repository.ensureSchemaReady()).rejects.toBeInstanceOf(MissingLogsTableError);
@@ -139,7 +139,7 @@ describe("PostgresLogRepository", () => {
       release: mockRelease,
     });
 
-    const { PostgresLogRepository } = await import("../repositories/postgres/log-repository.js");
+    const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository({ buildLogQuery } as never);
 
     const request: LogQueryRequest = {

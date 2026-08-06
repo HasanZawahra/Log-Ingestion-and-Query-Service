@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { LogController } from "../controllers/log-controller.js";
-import type { IngestRequest } from "../dto/ingest/ingest-request.js";
-import type { IngestResponse } from "../dto/ingest/ingest-response.js";
-import type { LogQueryResponse } from "../dto/log-query/log-query-response.js";
-import { AllEntriesRejectedError } from "../errors/all-entries-rejected-error.js";
-import { InvalidRequestBodyError } from "../errors/invalid-request-body-error.js";
-import type { ILogService } from "../services/interfaces/log-service.js";
+import { LogController } from "../../controllers/log-controller.js";
+import type { IngestRequest } from "../../dto/ingest/ingest-request.js";
+import type { IngestResponse } from "../../dto/ingest/ingest-response.js";
+import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js";
+import { AllEntriesRejectedError } from "../../errors/all-entries-rejected-error.js";
+import { InvalidRequestBodyError } from "../../errors/invalid-request-body-error.js";
+import type { ILogService } from "../../services/interfaces/log-service.js";
 
 describe("LogController", () => {
   it("returns the ingest result from the log service", async () => {
