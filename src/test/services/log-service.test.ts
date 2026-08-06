@@ -13,6 +13,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs,
       queryLogs: vi.fn(),
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -54,6 +55,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs,
       queryLogs: vi.fn(),
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -83,6 +85,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
       queryLogs,
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -115,6 +118,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
       queryLogs,
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);

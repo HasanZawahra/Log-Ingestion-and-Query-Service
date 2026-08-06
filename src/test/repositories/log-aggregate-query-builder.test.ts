@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildLogAggregateQuery } from "../../repositories/postgres/log-aggregate-query-builder.js";
+import { buildLogAggregateQuery } from "../../repositories/postgres/builders/log-aggregate-query-builder.js";
 
 describe("buildLogAggregateQuery", () => {
   it("builds a grouped aggregation query with all filters", () => {

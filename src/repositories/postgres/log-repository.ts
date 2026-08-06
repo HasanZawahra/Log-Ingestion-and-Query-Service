@@ -1,18 +1,25 @@
 import { pool } from "../../config/database.js";
 import { LOGS_TABLE_EXISTENCE_QUERY } from "../../constants/database.js";
 import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
+import type { LogAggregateRequest } from "../../dto/log-aggregate/log-aggregate-request.js";
+import type { LogAggregateResponse } from "../../dto/log-aggregate/log-aggregate-response.js";
 import type { LogQueryRequest } from "../../dto/log-query/log-query-request.js";
 import type { LogQueryEntry, LogQueryResponse } from "../../dto/log-query/log-query-response.js";
 import { MissingLogsTableError } from "../../errors/database/missing-logs-table-error.js";
 import { encodeLogCursor } from "../../utils/log-cursor.js";
+import type { ILogAggregateQueryBuilder } from "../interfaces/log-aggregate-query-builder.js";
 import type { ILogQueryBuilder } from "../interfaces/log-query-builder.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";
-import { buildBulkInsert, chunkLogEntries } from "./log-bulk-insert-query.js";
-import { PostgresLogQueryBuilder } from "./log-query-builder.js";
+import { buildBulkInsert, chunkLogEntries } from "./builders/log-bulk-insert-query.js";
+import { PostgresLogAggregateQueryBuilder } from "./builders/log-aggregate-query-builder.js";
 import { MAX_LOG_QUERY_LIMIT } from "../../constants/log.js";
+import { PostgresLogQueryBuilder } from "./builders/log-query-builder.js";
 
 export class PostgresLogRepository implements ILogRepository {
-  constructor(private readonly logQueryBuilder: ILogQueryBuilder = new PostgresLogQueryBuilder()) {}
+  constructor(
+    private readonly logQueryBuilder: ILogQueryBuilder = new PostgresLogQueryBuilder(),
+    private readonly logAggregateQueryBuilder: ILogAggregateQueryBuilder = new PostgresLogAggregateQueryBuilder()
+  ) {}
 
   async ensureSchemaReady(): Promise<void> {
     const client = await pool.connect();
@@ -71,6 +78,21 @@ export class PostgresLogRepository implements ILogRepository {
       client.release();
     }
   }
+
+  async queryLogAggregates(request: LogAggregateRequest): Promise<LogAggregateResponse> {
+    const query = this.logAggregateQueryBuilder.buildLogAggregateQuery(request);
+    const client = await pool.connect();
+
+    try {
+      const { rows } = await client.query(query.text, query.values);
+
+      return {
+        buckets: rows.map(mapLogAggregateBucket),
+      };
+    } finally {
+      client.release();
+    }
+  }
 }
 
 function mapLogQueryEntry(row: Record<string, unknown>): LogQueryEntry {
@@ -90,4 +112,12 @@ function normalizeTimestamp(value: unknown): string {
   }
 
   return new Date(String(value)).toISOString();
+}
+
+function mapLogAggregateBucket(row: Record<string, unknown>): LogAggregateResponse["buckets"][number] {
+  return {
+    start: normalizeTimestamp(row.start),
+    group: row.group === undefined || row.group === null ? null : String(row.group),
+    count: Number(row.count),
+  };
 }

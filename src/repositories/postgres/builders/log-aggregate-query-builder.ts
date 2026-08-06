@@ -1,14 +1,14 @@
-import { PUBLIC_LOGS_TABLE_NAME } from "../../constants/database.js";
+import { PUBLIC_LOGS_TABLE_NAME } from "../../../constants/database.js";
 import {
   LOG_AGGREGATE_BUCKET_EXPRESSIONS,
   LOG_AGGREGATE_GROUP_BY_EXPRESSION,
   LOG_AGGREGATE_ORDER_BY,
-} from "../../constants/log-aggregate-query.js";
-import type { LogAggregateRequest } from "../../dto/log-aggregate/log-aggregate-request.js";
+} from "../../../constants/log-aggregate-query.js";
+import type { LogAggregateRequest } from "../../../dto/log-aggregate/log-aggregate-request.js";
 import type {
   ILogAggregateQueryBuilder,
   LogAggregateQuerySql,
-} from "../interfaces/log-aggregate-query-builder.js";
+} from "../../interfaces/log-aggregate-query-builder.js";
 
 class ParameterBuilder {
   private readonly values: unknown[] = [];
