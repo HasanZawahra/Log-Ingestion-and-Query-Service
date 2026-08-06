@@ -3,7 +3,7 @@ import { LOGS_TABLE_EXISTENCE_QUERY } from "../../constants/database.js";
 import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
 import type { LogQueryRequest } from "../../dto/log-query/log-query-request.js";
 import type { LogQueryEntry, LogQueryResponse } from "../../dto/log-query/log-query-response.js";
-import { MissingLogsTableError } from "../../errors/missing-logs-table-error.js";
+import { MissingLogsTableError } from "../../errors/database/missing-logs-table-error.js";
 import { encodeLogCursor } from "../../utils/log-cursor.js";
 import type { ILogQueryBuilder } from "../interfaces/log-query-builder.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";

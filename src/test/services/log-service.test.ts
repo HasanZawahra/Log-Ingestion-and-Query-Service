@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type { IngestRequest } from "../../dto/ingest/ingest-request.js";
 import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js";
-import { AllEntriesRejectedError } from "../../errors/all-entries-rejected-error.js";
-import { InvalidLogQueryError } from "../../errors/invalid-log-query-error.js";
+import { AllEntriesRejectedError } from "../../errors/logs/all-entries-rejected-error.js";
+import { InvalidLogQueryError } from "../../errors/logs/invalid-log-query-error.js";
 import { LogService } from "../../services/implementations/log-service.js";
 import type { ILogRepository } from "../../repositories/interfaces/log-repository.js";
 

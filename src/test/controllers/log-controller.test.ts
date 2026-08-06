@@ -3,8 +3,8 @@ import { LogController } from "../../controllers/log-controller.js";
 import type { IngestRequest } from "../../dto/ingest/ingest-request.js";
 import type { IngestResponse } from "../../dto/ingest/ingest-response.js";
 import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js";
-import { AllEntriesRejectedError } from "../../errors/all-entries-rejected-error.js";
-import { InvalidRequestBodyError } from "../../errors/invalid-request-body-error.js";
+import { AllEntriesRejectedError } from "../../errors/logs/all-entries-rejected-error.js";
+import { InvalidRequestBodyError } from "../../errors/http/invalid-request-body-error.js";
 import type { ILogService } from "../../services/interfaces/log-service.js";
 
 describe("LogController", () => {

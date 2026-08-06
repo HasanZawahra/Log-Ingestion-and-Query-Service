@@ -3,7 +3,7 @@ import { MAX_LOGS_PER_INSERT } from "../../constants/log.js";
 import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
 import type { LogQueryRequest } from "../../dto/log-query/log-query-request.js";
 import { encodeLogCursor } from "../../utils/log-cursor.js";
-import { MissingLogsTableError } from "../../errors/missing-logs-table-error.js";
+import { MissingLogsTableError } from "../../errors/database/missing-logs-table-error.js";
 
 const mockConnect = vi.fn();
 const mockQuery = vi.fn();

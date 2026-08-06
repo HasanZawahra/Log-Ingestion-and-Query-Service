@@ -2,7 +2,7 @@ import { PUBLIC_LOGS_TABLE_NAME } from "../../constants/database.js";
 import { MAX_LOG_QUERY_LIMIT } from "../../constants/log.js";
 import { LOG_QUERY_ORDER_BY, LOG_QUERY_SELECT_COLUMNS } from "../../constants/log-query.js";
 import type { LogQueryRequest } from "../../dto/log-query/log-query-request.js";
-import { InvalidLogCursorError } from "../../errors/invalid-log-cursor-error.js";
+import { InvalidLogCursorError } from "../../errors/logs/invalid-log-cursor-error.js";
 import { decodeLogCursor } from "../../utils/log-cursor.js";
 import type { ILogQueryBuilder, LogQuerySql } from "../interfaces/log-query-builder.js";
 

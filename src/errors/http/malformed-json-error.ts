@@ -1,4 +1,4 @@
-import { BadRequestError } from "./bad-request-error.js";
+import { BadRequestError } from "../core/bad-request-error.js";
 
 export class MalformedJsonError extends BadRequestError {
   constructor() {
