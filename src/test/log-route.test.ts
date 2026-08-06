@@ -9,12 +9,14 @@ interface ExpressRouteLayer {
   };
 }
 
-describe("POST /logs", () => {
-  it("is registered on the Express app", () => {
+describe("/logs routes", () => {
+  it("registers GET /logs on the Express app", () => {
     const router = (app as unknown as { router: { stack: ExpressRouteLayer[] } }).router;
 
-    const logsRoute = router.stack.find((layer) => layer.route?.path === LOGS_ROUTE);
+    const getLogsRoute = router.stack.find((layer) => layer.route?.path === LOGS_ROUTE && layer.route?.methods.get);
+    const postLogsRoute = router.stack.find((layer) => layer.route?.path === LOGS_ROUTE && layer.route?.methods.post);
 
-    expect(logsRoute?.route?.methods.post).toBe(true);
+    expect(getLogsRoute?.route?.methods.get).toBe(true);
+    expect(postLogsRoute?.route?.methods.post).toBe(true);
   });
 });

@@ -20,6 +20,7 @@ const logService = new LogService(logRepository);
 const logController = new LogController(logService);
 
 app.get(HEALTH_ROUTE, (req, res) => healthController.getHealth(req, res));
+app.get(LOGS_ROUTE, (req, res) => logController.queryLogs(req, res));
 app.post(LOGS_ROUTE, (req, res) => logController.ingestLogs(req, res));
 
 app.use(jsonParseErrorHandler);

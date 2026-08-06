@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { LogController } from "../controllers/log-controller.js";
 import type { IngestRequest } from "../dto/ingest/ingest-request.js";
 import type { IngestResponse } from "../dto/ingest/ingest-response.js";
+import type { LogQueryResponse } from "../dto/log-query/log-query-response.js";
 import { AllEntriesRejectedError } from "../errors/all-entries-rejected-error.js";
 import { InvalidRequestBodyError } from "../errors/invalid-request-body-error.js";
 import type { ILogService } from "../services/interfaces/log-service.js";
@@ -25,6 +26,7 @@ describe("LogController", () => {
     };
     const logService: ILogService = {
       ingestLogs: vi.fn().mockResolvedValue(ingestResponse),
+      queryLogs: vi.fn(),
     };
     const controller = new LogController(logService);
 
@@ -52,6 +54,7 @@ describe("LogController", () => {
   it("throws when the request body does not match the expected top-level shape", async () => {
     const logService: ILogService = {
       ingestLogs: vi.fn(),
+      queryLogs: vi.fn(),
     };
     const controller = new LogController(logService);
 
@@ -81,6 +84,7 @@ describe("LogController", () => {
           ],
         })
       ),
+      queryLogs: vi.fn(),
     };
     const controller = new LogController(logService);
 
@@ -101,5 +105,53 @@ describe("LogController", () => {
         {} as never
       )
     ).rejects.toBeInstanceOf(AllEntriesRejectedError);
+  });
+
+  it("returns query results from the log service", async () => {
+    const queryResponse: LogQueryResponse = {
+      entries: [
+        {
+          id: 9,
+          timestamp: "2026-08-03T10:00:00.000Z",
+          level: "info",
+          service: "checkout",
+          message: "created",
+          attributes: {},
+        },
+      ],
+      next_cursor: null,
+    };
+    const logService: ILogService = {
+      ingestLogs: vi.fn(),
+      queryLogs: vi.fn().mockResolvedValue(queryResponse),
+    };
+    const controller = new LogController(logService);
+
+    const response = await new Promise<{ status: number; body: LogQueryResponse }>((resolve) => {
+      const res = {
+        statusCode: 200,
+        status(code: number) {
+          this.statusCode = code;
+          return this;
+        },
+        json(payload: LogQueryResponse) {
+          resolve({ status: this.statusCode, body: payload });
+          return this;
+        },
+      };
+
+      controller.queryLogs(
+        {
+          query: {
+            service: "checkout",
+          },
+        } as never,
+        res as never
+      );
+    });
+
+    expect(logService.queryLogs).toHaveBeenCalledWith({ service: "checkout" });
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(queryResponse);
   });
 });
