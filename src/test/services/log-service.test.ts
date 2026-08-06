@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import type { IngestRequest } from "../dto/ingest/ingest-request.js";
-import type { LogQueryResponse } from "../dto/log-query/log-query-response.js";
-import { AllEntriesRejectedError } from "../errors/all-entries-rejected-error.js";
-import { InvalidLogQueryError } from "../errors/invalid-log-query-error.js";
-import { LogService } from "../services/implementations/log-service.js";
-import type { ILogRepository } from "../repositories/interfaces/log-repository.js";
+import type { IngestRequest } from "../../dto/ingest/ingest-request.js";
+import type { LogAggregateResponse } from "../../dto/log-aggregate/log-aggregate-response.js";
+import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js";
+import { AllEntriesRejectedError } from "../../errors/logs/all-entries-rejected-error.js";
+import { InvalidLogAggregateError } from "../../errors/logs/invalid-log-aggregate-error.js";
+import { InvalidLogQueryError } from "../../errors/logs/invalid-log-query-error.js";
+import { LogService } from "../../services/implementations/log-service.js";
+import type { ILogRepository } from "../../repositories/interfaces/log-repository.js";
 
 describe("LogService", () => {
   it("validates and persists only valid entries", async () => {
@@ -13,6 +15,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs,
       queryLogs: vi.fn(),
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -54,6 +57,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs,
       queryLogs: vi.fn(),
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -83,6 +87,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
       queryLogs,
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -115,6 +120,7 @@ describe("LogService", () => {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
       queryLogs,
+      queryLogAggregates: vi.fn(),
     };
 
     const service = new LogService(repository);
@@ -126,6 +132,65 @@ describe("LogService", () => {
     expect(queryLogs).toHaveBeenCalledWith({
       service: "checkout",
       limit: 10,
+    });
+    expect(result).toEqual(response);
+  });
+
+  it("validates aggregate query parameters before querying aggregates", async () => {
+    const queryLogAggregates = vi.fn().mockResolvedValue({
+      buckets: [],
+    } satisfies LogAggregateResponse);
+    const repository: ILogRepository = {
+      ensureSchemaReady: vi.fn(),
+      saveLogs: vi.fn(),
+      queryLogs: vi.fn(),
+      queryLogAggregates,
+    };
+
+    const service = new LogService(repository);
+
+    await expect(
+      service.queryLogAggregates({
+        since: "2026-08-03T11:00:00.000Z",
+        until: "2026-08-03T10:00:00.000Z",
+        bucket: "1m",
+      })
+    ).rejects.toBeInstanceOf(InvalidLogAggregateError);
+
+    expect(queryLogAggregates).not.toHaveBeenCalled();
+  });
+
+  it("delegates valid aggregate queries to the repository", async () => {
+    const response: LogAggregateResponse = {
+      buckets: [
+        {
+          start: "2026-08-03T10:00:00.000Z",
+          group: "checkout",
+          count: 118,
+        },
+      ],
+    };
+    const queryLogAggregates = vi.fn().mockResolvedValue(response);
+    const repository: ILogRepository = {
+      ensureSchemaReady: vi.fn(),
+      saveLogs: vi.fn(),
+      queryLogs: vi.fn(),
+      queryLogAggregates,
+    };
+
+    const service = new LogService(repository);
+    const result = await service.queryLogAggregates({
+      since: "2026-08-03T10:00:00.000Z",
+      until: "2026-08-03T11:00:00.000Z",
+      bucket: "1m",
+      group_by: "service",
+    });
+
+    expect(queryLogAggregates).toHaveBeenCalledWith({
+      since: "2026-08-03T10:00:00.000Z",
+      until: "2026-08-03T11:00:00.000Z",
+      bucket: "1m",
+      groupBy: "service",
     });
     expect(result).toEqual(response);
   });

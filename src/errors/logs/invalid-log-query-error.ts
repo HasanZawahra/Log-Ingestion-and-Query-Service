@@ -1,4 +1,4 @@
-import { BadRequestError } from "./bad-request-error.js";
+import { BadRequestError } from "../core/bad-request-error.js";
 
 export class InvalidLogQueryError extends BadRequestError {
   constructor(private readonly issues: string[]) {

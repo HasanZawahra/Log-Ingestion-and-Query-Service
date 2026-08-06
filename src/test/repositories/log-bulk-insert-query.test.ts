@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { MAX_LOGS_PER_INSERT } from "../constants/log.js";
-import type { IngestLogEntry } from "../dto/ingest/ingest-request.js";
-import { EmptyBulkInsertError } from "../errors/empty-bulk-insert-error.js";
-import { buildBulkInsert, chunkLogEntries } from "../repositories/postgres/log-bulk-insert-query.js";
+import { MAX_LOGS_PER_INSERT } from "../../constants/log.js";
+import type { IngestLogEntry } from "../../dto/ingest/ingest-request.js";
+import { EmptyBulkInsertError } from "../../errors/repository/empty-bulk-insert-error.js";
+import { buildBulkInsert, chunkLogEntries } from "../../repositories/postgres/builders/log-bulk-insert-query.js";
 
 function createEntry(index: number): IngestLogEntry {
   return {

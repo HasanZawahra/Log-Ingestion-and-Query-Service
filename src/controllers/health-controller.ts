@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { ServiceUnavailableError } from "../errors/service-unavailable-error.js";
+import { ServiceUnavailableError } from "../errors/database/service-unavailable-error.js";
 import type { IHealthService } from "../services/interfaces/health-service.js";
 
 export class HealthController {

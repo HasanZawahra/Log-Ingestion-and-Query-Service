@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
-import { AppError } from "../errors/app-error.js";
-import { MalformedJsonError } from "../errors/malformed-json-error.js";
+import { AppError } from "../errors/core/app-error.js";
+import { MalformedJsonError } from "../errors/http/malformed-json-error.js";
 
 export function jsonParseErrorHandler(
   error: unknown,

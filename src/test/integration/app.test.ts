@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { HealthController } from "../controllers/health-controller.js";
-import { MalformedJsonError } from "../errors/malformed-json-error.js";
-import { InvalidLogQueryError } from "../errors/invalid-log-query-error.js";
-import { InvalidLogCursorError } from "../errors/invalid-log-cursor-error.js";
-import type { IHealthService } from "../services/interfaces/health-service.js";
-import { applicationErrorHandler, jsonParseErrorHandler } from "../utils/middleware.js";
+import { HealthController } from "../../controllers/health-controller.js";
+import { InvalidLogAggregateError } from "../../errors/logs/invalid-log-aggregate-error.js";
+import { MalformedJsonError } from "../../errors/http/malformed-json-error.js";
+import { InvalidLogQueryError } from "../../errors/logs/invalid-log-query-error.js";
+import { InvalidLogCursorError } from "../../errors/logs/invalid-log-cursor-error.js";
+import type { IHealthService } from "../../services/interfaces/health-service.js";
+import { applicationErrorHandler, jsonParseErrorHandler } from "../../utils/middleware.js";
 
 describe("GET /health", () => {
   it("returns ok when the database is healthy", async () => {
@@ -146,6 +147,35 @@ describe("POST /logs", () => {
     expect(response.body).toEqual({
       error: "invalid log query",
       issues: ["limit must be an integer between 1 and 1000"],
+    });
+  });
+
+  it("serializes aggregate query validation errors into responses", async () => {
+    const response = await new Promise<{ status: number; body: { error: string; issues: string[] } }>((resolve) => {
+      const res = {
+        statusCode: 200,
+        status(code: number) {
+          this.statusCode = code;
+          return this;
+        },
+        json(payload: { error: string; issues: string[] }) {
+          resolve({ status: this.statusCode, body: payload });
+          return this;
+        },
+      };
+
+      applicationErrorHandler(
+        new InvalidLogAggregateError(["bucket must be one of: 1m, 5m, 1h, 1d"]),
+        {} as never,
+        res as never,
+        vi.fn() as never
+      );
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      error: "invalid log aggregate query",
+      issues: ["bucket must be one of: 1m, 5m, 1h, 1d"],
     });
   });
 });

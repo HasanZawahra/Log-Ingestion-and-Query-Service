@@ -3,7 +3,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import "dotenv/config";
 import { DATABASE_MIGRATIONS_FOLDER, DATABASE_URL_ENV_VAR, MAX_DATABASE_CONNECTIONS } from "../constants/database.js";
-import { MissingDatabaseUrlError } from "../errors/missing-database-url-error.js";
+import { MissingDatabaseUrlError } from "../errors/database/missing-database-url-error.js";
 
 const connectionString = process.env[DATABASE_URL_ENV_VAR];
 

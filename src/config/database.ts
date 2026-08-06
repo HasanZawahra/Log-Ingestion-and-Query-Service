@@ -5,8 +5,8 @@ import {
   LOGS_TABLE_EXISTENCE_QUERY,
   MAX_DATABASE_CONNECTIONS,
 } from "../constants/database.js";
-import { MissingDatabaseUrlError } from "../errors/missing-database-url-error.js";
-import { MissingLogsTableError } from "../errors/missing-logs-table-error.js";
+import { MissingDatabaseUrlError } from "../errors/database/missing-database-url-error.js";
+import { MissingLogsTableError } from "../errors/database/missing-logs-table-error.js";
 
 const connectionString = process.env[DATABASE_URL_ENV_VAR]!;
 

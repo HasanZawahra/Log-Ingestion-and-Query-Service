@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_LOG_QUERY_LIMIT, MIN_LOG_QUERY_LIMIT } from "../constants/log.js";
+import { MAX_LOG_QUERY_LIMIT, MIN_LOG_QUERY_LIMIT } from "../../constants/log.js";
 import {
   parseLogQueryRequest,
   validateCursor,
@@ -7,8 +7,8 @@ import {
   validateLogLevel,
   validateQueryTimestamp,
   validateTimeRange,
-} from "../validation/log-query-validator.js";
-import { decodeLogCursor, encodeLogCursor, isValidLogCursor } from "../utils/log-cursor.js";
+} from "../../validation/log-query-validator.js";
+import { decodeLogCursor, encodeLogCursor, isValidLogCursor } from "../../utils/log-cursor.js";
 
 describe("log query validation", () => {
   it("parses a valid query with combined filters", () => {

@@ -22,7 +22,7 @@ describe("database initialization", () => {
     process.env.DATABASE_URL = "";
 
     try {
-      await expect(import("../config/database.js")).rejects.toMatchObject({
+      await expect(import("../../config/database.js")).rejects.toMatchObject({
         name: "MissingDatabaseUrlError",
         message: "DATABASE_URL must be set",
       });
@@ -47,7 +47,7 @@ describe("database initialization", () => {
     mockQuery.mockResolvedValue({ rows: [{ table_name: "logs" }] });
 
     try {
-      const { initializeDatabase } = await import("../config/database.js");
+      const { initializeDatabase } = await import("../../config/database.js");
 
       await expect(initializeDatabase()).rejects.toThrow("db unavailable");
       await expect(initializeDatabase()).resolves.toBeUndefined();

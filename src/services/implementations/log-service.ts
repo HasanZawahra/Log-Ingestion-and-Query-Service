@@ -1,8 +1,11 @@
 import type { IngestRequest } from "../../dto/ingest/ingest-request.js";
 import type { IngestResponse } from "../../dto/ingest/ingest-response.js";
+import type { LogAggregateResponse } from "../../dto/log-aggregate/log-aggregate-response.js";
 import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js";
-import { AllEntriesRejectedError } from "../../errors/all-entries-rejected-error.js";
-import { InvalidLogQueryError } from "../../errors/invalid-log-query-error.js";
+import { AllEntriesRejectedError } from "../../errors/logs/all-entries-rejected-error.js";
+import { InvalidLogAggregateError } from "../../errors/logs/invalid-log-aggregate-error.js";
+import { InvalidLogQueryError } from "../../errors/logs/invalid-log-query-error.js";
+import { parseLogAggregateRequest } from "../../validation/log-aggregate-validator.js";
 import { parseLogQueryRequest } from "../../validation/log-query-validator.js";
 import { validateBatch } from "../../validation/log-validator.js";
 import type { ILogService } from "../interfaces/log-service.js";
@@ -39,5 +42,15 @@ export class LogService implements ILogService {
     }
 
     return this.logRepository.queryLogs(validation.value);
+  }
+
+  async queryLogAggregates(request: unknown): Promise<LogAggregateResponse> {
+    const validation = parseLogAggregateRequest(request);
+
+    if (validation.errors.length > 0 || !validation.value) {
+      throw new InvalidLogAggregateError(validation.errors);
+    }
+
+    return this.logRepository.queryLogAggregates(validation.value);
   }
 }

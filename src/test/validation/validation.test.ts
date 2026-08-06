@@ -5,7 +5,7 @@ import {
   validateLevel,
   validateLog,
   validateTimestamp,
-} from "../validation/log-validator.js";
+} from "../../validation/log-validator.js";
 
 describe("log validation", () => {
   it("accepts a valid batch and rejects invalid entries independently", () => {
