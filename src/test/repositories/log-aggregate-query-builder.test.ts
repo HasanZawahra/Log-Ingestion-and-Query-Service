@@ -23,7 +23,7 @@ describe("buildLogAggregateQuery", () => {
     expect(query.text).toContain("message ILIKE $5");
     expect(query.text).toContain("attributes @> $6::jsonb");
     expect(query.text).toContain("GROUP BY 1, 2");
-    expect(query.text).toContain("ORDER BY 1 ASC, 2 ASC NULLS FIRST");
+    expect(query.text).toContain('ORDER BY start ASC, "group" ASC NULLS FIRST');
     expect(query.values).toEqual([
       "2026-08-03T10:00:00.000Z",
       "2026-08-03T11:00:00.000Z",
@@ -41,7 +41,7 @@ describe("buildLogAggregateQuery", () => {
       bucket: "1m",
     });
 
-    expect(query.text).toContain("date_trunc('minute', timestamp) AS start");
+    expect(query.text).toContain("to_timestamp(floor(extract(epoch from timestamp) / 60) * 60) AS start");
     expect(query.text).toContain("NULL::text AS \"group\"");
     expect(query.text).toContain("WHERE timestamp >= $1 AND timestamp < $2");
     expect(query.values).toEqual([
