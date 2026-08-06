@@ -22,4 +22,10 @@ export class LogController {
 
     return res.status(200).json(result);
   }
+
+  async queryLogAggregates(req: Request, res: Response): Promise<Response> {
+    const result = await this.logService.queryLogAggregates(req.query);
+
+    return res.status(200).json(result);
+  }
 }
