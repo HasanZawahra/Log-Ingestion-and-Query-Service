@@ -6,6 +6,78 @@ import { buildLogQuery } from "../repositories/postgres/log-query-builder.js";
 import { encodeLogCursor } from "../utils/log-cursor.js";
 
 describe("buildLogQuery", () => {
+  it("builds a service-only query", () => {
+    const query = buildLogQuery({
+      service: "checkout",
+    });
+
+    expect(query.text).toContain("WHERE service = $1");
+    expect(query.text).toContain("LIMIT $2");
+    expect(query.values).toEqual(["checkout", MAX_LOG_QUERY_LIMIT]);
+  });
+
+  it("builds a level-only query", () => {
+    const query = buildLogQuery({
+      level: "error",
+    });
+
+    expect(query.text).toContain("WHERE level = $1");
+    expect(query.text).toContain("LIMIT $2");
+    expect(query.values).toEqual(["error", MAX_LOG_QUERY_LIMIT]);
+  });
+
+  it("builds a time-range query", () => {
+    const query = buildLogQuery({
+      since: "2026-08-03T10:00:00.000Z",
+      until: "2026-08-03T11:00:00.000Z",
+    });
+
+    expect(query.text).toContain("WHERE timestamp >= $1 AND timestamp < $2");
+    expect(query.text).toContain("LIMIT $3");
+    expect(query.values).toEqual([
+      "2026-08-03T10:00:00.000Z",
+      "2026-08-03T11:00:00.000Z",
+      MAX_LOG_QUERY_LIMIT,
+    ]);
+  });
+
+  it("builds an attribute-filter query", () => {
+    const query = buildLogQuery({
+      attributeFilters: {
+        region: "eu-west",
+      },
+    });
+
+    expect(query.text).toContain("WHERE attributes @> $1::jsonb");
+    expect(query.text).toContain("LIMIT $2");
+    expect(query.values).toEqual([JSON.stringify({ region: "eu-west" }), MAX_LOG_QUERY_LIMIT]);
+  });
+
+  it("builds a message-search query", () => {
+    const query = buildLogQuery({
+      q: "payment failed",
+    });
+
+    expect(query.text).toContain("WHERE message ILIKE $1");
+    expect(query.text).toContain("LIMIT $2");
+    expect(query.values).toEqual(["%payment failed%", MAX_LOG_QUERY_LIMIT]);
+  });
+
+  it("builds a cursor query clause", () => {
+    const cursor = encodeLogCursor({
+      timestamp: "2026-08-03T10:30:00.000Z",
+      id: 44,
+    });
+
+    const query = buildLogQuery({
+      cursor,
+    });
+
+    expect(query.text).toContain("WHERE (timestamp, id) < ($1, $2)");
+    expect(query.text).toContain("LIMIT $3");
+    expect(query.values).toEqual(["2026-08-03T10:30:00.000Z", 44, MAX_LOG_QUERY_LIMIT]);
+  });
+
   it("builds a parameterized query with all supported filters", () => {
     const cursor = encodeLogCursor({
       timestamp: "2026-08-03T10:30:00.000Z",
