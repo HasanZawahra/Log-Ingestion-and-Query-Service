@@ -16,7 +16,10 @@ export class PostgresRetentionRepository implements IRetentionRepository {
   }
 }
 
-function buildDeleteExpiredLogsQuery(cutoff: Date, batchSize: number): {
+function buildDeleteExpiredLogsQuery(
+  cutoff: Date,
+  batchSize: number
+): {
   text: string;
   values: unknown[];
 } {

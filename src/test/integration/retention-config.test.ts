@@ -28,10 +28,7 @@ describe("retention configuration", () => {
   });
 
   it("calculates cutoff from the current time and retention period", () => {
-    const cutoff = calculateRetentionCutoff(
-      new Date("2026-08-08T00:00:00.000Z"),
-      30
-    );
+    const cutoff = calculateRetentionCutoff(new Date("2026-08-08T00:00:00.000Z"), 30);
 
     expect(cutoff.toISOString()).toBe("2026-07-09T00:00:00.000Z");
   });

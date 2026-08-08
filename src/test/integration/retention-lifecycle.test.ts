@@ -74,7 +74,10 @@ describe("retention lifecycle integration", () => {
       } as never;
     }) as never);
 
-    const onceSpy = vi.spyOn(process, "once").mockImplementation(((event: string, listener: () => void) => {
+    const onceSpy = vi.spyOn(process, "once").mockImplementation(((
+      event: string,
+      listener: () => void
+    ) => {
       signalHandlers[event] = listener;
       return process;
     }) as never);

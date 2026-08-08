@@ -1,6 +1,9 @@
 import { calculateRetentionCutoff, getRetentionConfig } from "../../config/retention.js";
 import type { IRetentionRepository } from "../../repositories/interfaces/retention-repository.js";
-import type { IRetentionService, RetentionExecutionResult } from "../interfaces/retention-service.js";
+import type {
+  IRetentionService,
+  RetentionExecutionResult,
+} from "../interfaces/retention-service.js";
 import type { RetentionConfig } from "../../config/retention.js";
 
 export class RetentionService implements IRetentionService {

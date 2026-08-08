@@ -31,14 +31,14 @@ describe("PostgresRetentionRepository", () => {
 
     const deleted = await repository.deleteExpiredLogs(cutoff, 5000);
 
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining("WITH expired AS ("),
-      [cutoff, 5000]
-    );
-    expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining("WHERE timestamp < $1"),
-      [cutoff, 5000]
-    );
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining("WITH expired AS ("), [
+      cutoff,
+      5000,
+    ]);
+    expect(mockQuery).toHaveBeenCalledWith(expect.stringContaining("WHERE timestamp < $1"), [
+      cutoff,
+      5000,
+    ]);
     expect(deleted).toBe(128);
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });

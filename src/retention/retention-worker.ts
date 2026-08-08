@@ -1,6 +1,9 @@
 import type { RetentionConfig } from "../config/retention.js";
 import { RETENTION_RUNS_ON_STARTUP } from "../constants/retention.js";
-import type { IRetentionService, RetentionExecutionResult } from "../services/interfaces/retention-service.js";
+import type {
+  IRetentionService,
+  RetentionExecutionResult,
+} from "../services/interfaces/retention-service.js";
 
 export interface RetentionWorkerLogger {
   info(message: string, meta?: Record<string, unknown>): void;

@@ -49,7 +49,11 @@ describe("RetentionService", () => {
   it("continues deleting multiple batches until the final batch is smaller", async () => {
     process.env.LOG_RETENTION_DAYS = "30";
     process.env.RETENTION_DELETE_BATCH_SIZE = "5000";
-    const deleteExpiredLogs = vi.fn().mockResolvedValueOnce(5000).mockResolvedValueOnce(5000).mockResolvedValueOnce(74);
+    const deleteExpiredLogs = vi
+      .fn()
+      .mockResolvedValueOnce(5000)
+      .mockResolvedValueOnce(5000)
+      .mockResolvedValueOnce(74);
     const repository: IRetentionRepository = {
       deleteExpiredLogs,
     };
