@@ -1,12 +1,16 @@
 import { calculateRetentionCutoff, getRetentionConfig } from "../../config/retention.js";
 import type { IRetentionRepository } from "../../repositories/interfaces/retention-repository.js";
 import type { IRetentionService, RetentionExecutionResult } from "../interfaces/retention-service.js";
+import type { RetentionConfig } from "../../config/retention.js";
 
 export class RetentionService implements IRetentionService {
-  constructor(private readonly retentionRepository: IRetentionRepository) {}
+  constructor(
+    private readonly retentionRepository: IRetentionRepository,
+    private readonly retentionConfig: RetentionConfig = getRetentionConfig()
+  ) {}
 
   async runRetention(now: Date = new Date()): Promise<RetentionExecutionResult> {
-    const { logRetentionDays, retentionDeleteBatchSize } = getRetentionConfig();
+    const { logRetentionDays, retentionDeleteBatchSize } = this.retentionConfig;
     const cutoff = calculateRetentionCutoff(now, logRetentionDays);
 
     let deleted = 0;
