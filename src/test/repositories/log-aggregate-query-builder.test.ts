@@ -17,7 +17,7 @@ describe("buildLogAggregateQuery", () => {
     });
 
     expect(query.text).toContain(
-      "to_timestamp(floor(extract(epoch from timestamp) / 300) * 300) AS start"
+      "date_bin(interval '5 minutes', timestamp, '1970-01-01 00:00:00+00'::timestamptz) AS start"
     );
     expect(query.text).toContain('service::text AS "group"');
     expect(query.text).toContain("COUNT(*)::int AS count");
@@ -46,7 +46,7 @@ describe("buildLogAggregateQuery", () => {
     });
 
     expect(query.text).toContain(
-      "to_timestamp(floor(extract(epoch from timestamp) / 60) * 60) AS start"
+      "date_bin(interval '1 minute', timestamp, '1970-01-01 00:00:00+00'::timestamptz) AS start"
     );
     expect(query.text).toContain('NULL::text AS "group"');
     expect(query.text).toContain("WHERE timestamp >= $1 AND timestamp < $2");

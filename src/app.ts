@@ -10,7 +10,7 @@ import { applicationErrorHandler, jsonParseErrorHandler } from "./utils/middlewa
 
 export const app = express();
 
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 
 const healthService = new HealthService();
 const healthController = new HealthController(healthService);
