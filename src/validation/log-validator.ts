@@ -3,11 +3,25 @@ import type { RejectedEntry } from "../dto/ingest/ingest-response.js";
 import { LOG_LEVELS } from "../constants/log.js";
 
 export function isIngestRequest(value: unknown): value is IngestRequest {
+  return normalizeIngestRequest(value) !== null;
+}
+
+export function normalizeIngestRequest(value: unknown): IngestRequest | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
+    if (Array.isArray(value)) {
+      return { entries: value as IngestLogEntry[] };
+    }
+
+    return null;
   }
 
-  return Array.isArray((value as { entries?: unknown }).entries);
+  const entries = (value as { entries?: unknown }).entries;
+
+  if (Array.isArray(entries)) {
+    return { entries: entries as IngestLogEntry[] };
+  }
+
+  return null;
 }
 
 export function validateBatch(request: IngestRequest): {

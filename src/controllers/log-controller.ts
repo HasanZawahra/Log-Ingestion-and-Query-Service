@@ -2,17 +2,19 @@ import type { Request, Response } from "express";
 import type { IngestRequest } from "../dto/ingest/ingest-request.js";
 import { InvalidRequestBodyError } from "../errors/http/invalid-request-body-error.js";
 import type { ILogService } from "../services/interfaces/log-service.js";
-import { isIngestRequest } from "../validation/log-validator.js";
+import { normalizeIngestRequest } from "../validation/log-validator.js";
 
 export class LogController {
   constructor(private readonly logService: ILogService) {}
 
   async ingestLogs(req: Request, res: Response): Promise<Response> {
-    if (!isIngestRequest(req.body)) {
+    const request = normalizeIngestRequest(req.body);
+
+    if (!request) {
       throw new InvalidRequestBodyError();
     }
 
-    const result = await this.logService.ingestLogs(req.body as IngestRequest);
+    const result = await this.logService.ingestLogs(request as IngestRequest);
 
     return res.status(200).json(result);
   }
