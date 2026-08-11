@@ -7,15 +7,21 @@ export function isIngestRequest(value: unknown): value is IngestRequest {
 }
 
 export function normalizeIngestRequest(value: unknown): IngestRequest | null {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    if (Array.isArray(value)) {
-      return { entries: value as IngestLogEntry[] };
-    }
+  if (Array.isArray(value)) {
+    return { entries: value as IngestLogEntry[] };
+  }
 
+  if (typeof value !== "object" || value === null) {
     return null;
   }
 
-  const entries = (value as { entries?: unknown }).entries;
+  const payload = value as {
+    entries?: unknown;
+    logs?: unknown;
+    data?: unknown;
+    items?: unknown;
+  };
+  const entries = payload.entries ?? payload.logs ?? payload.data ?? payload.items;
 
   if (Array.isArray(entries)) {
     return { entries: entries as IngestLogEntry[] };

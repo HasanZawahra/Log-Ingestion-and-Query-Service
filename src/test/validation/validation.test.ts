@@ -5,6 +5,7 @@ import {
   validateLevel,
   validateLog,
   validateTimestamp,
+  normalizeIngestRequest,
 } from "../../validation/log-validator.js";
 
 describe("log validation", () => {
@@ -70,5 +71,22 @@ describe("log validation", () => {
     expect(validateAttributes(["bad"])).toEqual([
       "attributes must be a flat object with primitive values only",
     ]);
+  });
+
+  it("normalizes common batch envelopes into an ingest request", () => {
+    const batch = [
+      {
+        timestamp: "2024-01-01T00:00:00Z",
+        level: "info",
+        service: "api",
+        message: "ok",
+      },
+    ];
+
+    expect(normalizeIngestRequest({ entries: batch })).toEqual({ entries: batch });
+    expect(normalizeIngestRequest({ logs: batch })).toEqual({ entries: batch });
+    expect(normalizeIngestRequest({ data: batch })).toEqual({ entries: batch });
+    expect(normalizeIngestRequest({ items: batch })).toEqual({ entries: batch });
+    expect(normalizeIngestRequest(batch)).toEqual({ entries: batch });
   });
 });
