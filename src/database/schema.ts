@@ -33,11 +33,18 @@ export const logs = pgTable(
       table.timestamp.desc(),
       table.id.desc()
     ),
+    serviceLevelTimestampIdx: index("logs_service_level_timestamp_id_idx").on(
+      table.service,
+      table.level,
+      table.timestamp.desc(),
+      table.id.desc()
+    ),
     levelTimestampIdx: index("logs_level_timestamp_id_idx").on(
       table.level,
       table.timestamp.desc(),
       table.id.desc()
     ),
+    messageTrgmIdx: index("logs_message_trgm_idx").using("gin", sql`message gin_trgm_ops`),
     attributesIdx: index("logs_attributes_gin_idx").using("gin", table.attributes),
   })
 );

@@ -22,18 +22,19 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
   const attributeFilters: Record<string, string> = {};
 
   if ("service" in rawQuery) {
-    const service = parseStringParam(rawQuery.service);
-    if (!service) {
-      errors.push("service must be a non-empty string");
-    } else {
-      value.service = service;
+    if (typeof rawQuery.service !== "string") {
+      errors.push("service must be a string");
+    } else if (!isAbsentQueryValue(rawQuery.service)) {
+      value.service = rawQuery.service;
     }
   }
 
   if ("level" in rawQuery) {
     const level = parseLevelParam(rawQuery.level);
-    if (!level) {
-      errors.push("level must be one of: debug, info, warn, error");
+    if (level === null) {
+      if (!isAbsentQueryValue(rawQuery.level)) {
+        errors.push("level must be one of: debug, info, warn, error");
+      }
     } else {
       value.level = level;
     }
@@ -62,20 +63,21 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
   }
 
   if ("q" in rawQuery) {
-    const q = parseStringParam(rawQuery.q, false);
-    if (q === null) {
+    if (typeof rawQuery.q !== "string") {
       errors.push("q must be a string");
-    } else {
-      value.q = q;
+    } else if (!isAbsentQueryValue(rawQuery.q)) {
+      value.q = rawQuery.q;
     }
   }
 
   if ("limit" in rawQuery) {
     const limit = parseLimitParam(rawQuery.limit);
     if (limit === null) {
-      errors.push(
-        `limit must be an integer between ${MIN_LOG_QUERY_LIMIT} and ${MAX_LOG_QUERY_LIMIT}`
-      );
+      if (!isAbsentQueryValue(rawQuery.limit)) {
+        errors.push(
+          `limit must be an integer between ${MIN_LOG_QUERY_LIMIT} and ${MAX_LOG_QUERY_LIMIT}`
+        );
+      }
     } else {
       value.limit = limit;
     }
@@ -83,7 +85,12 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
 
   if ("cursor" in rawQuery) {
     const cursor = parseStringParam(rawQuery.cursor, false);
-    if (cursor === null || !isValidLogCursor(cursor)) {
+    if (cursor === null) {
+      errors.push("cursor must be a valid base64url-encoded log cursor");
+    } else if (isAbsentQueryValue(cursor)) {
+      // Treat an explicit empty cursor as "no cursor yet" to stay compatible
+      // with generators that send cursor= on the first page.
+    } else if (!isValidLogCursor(cursor)) {
       errors.push("cursor must be a valid base64url-encoded log cursor");
     } else {
       value.cursor = cursor;
@@ -98,8 +105,12 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     const attributeKey = key.slice("attr.".length);
     const attributeValue = parseStringParam(rawValue, false);
 
-    if (attributeKey.length === 0 || attributeValue === null) {
+    if (attributeKey.length === 0) {
       errors.push(`attribute filter ${key} must be a string`);
+      continue;
+    }
+
+    if (attributeValue === null || isAbsentQueryValue(attributeValue)) {
       continue;
     }
 
@@ -175,6 +186,15 @@ function parseStringParam(value: unknown, requireNonEmpty = true): string | null
   }
 
   return value;
+}
+
+function isAbsentQueryValue(value: unknown): boolean {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized.length === 0 || normalized === "null" || normalized === "undefined";
 }
 
 function parseLevelParam(value: unknown): IngestLogLevel | null {

@@ -88,4 +88,24 @@ describe("log aggregate validation", () => {
       "until must be a valid ISO 8601 date",
     ]);
   });
+
+  it("ignores null-like optional aggregate filters", () => {
+    const result = parseLogAggregateRequest({
+      since: "2026-08-03T10:00:00.000Z",
+      until: "2026-08-03T11:00:00.000Z",
+      bucket: "1m",
+      group_by: "null",
+      service: "undefined",
+      level: "null",
+      q: "",
+      "attr.requestId": "null",
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.value).toEqual({
+      since: "2026-08-03T10:00:00.000Z",
+      until: "2026-08-03T11:00:00.000Z",
+      bucket: "1m",
+    });
+  });
 });

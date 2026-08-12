@@ -57,7 +57,9 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
   if ("group_by" in rawQuery) {
     const groupBy = parseEnumParam(rawQuery.group_by, LOG_AGGREGATE_GROUP_BY_VALUES);
     if (!groupBy) {
-      errors.push("group_by must be one of: service, level");
+      if (!isAbsentQueryValue(rawQuery.group_by)) {
+        errors.push("group_by must be one of: service, level");
+      }
     } else {
       value.groupBy = groupBy;
     }
@@ -65,9 +67,9 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
 
   if ("service" in rawQuery) {
     const service = parseStringParam(rawQuery.service);
-    if (!service) {
+    if (service === null) {
       errors.push("service must be a non-empty string");
-    } else {
+    } else if (!isAbsentQueryValue(service)) {
       value.service = service;
     }
   }
@@ -75,7 +77,9 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
   if ("level" in rawQuery) {
     const level = parseLevelParam(rawQuery.level);
     if (!level) {
-      errors.push("level must be one of: debug, info, warn, error");
+      if (!isAbsentQueryValue(rawQuery.level)) {
+        errors.push("level must be one of: debug, info, warn, error");
+      }
     } else {
       value.level = level;
     }
@@ -85,7 +89,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     const q = parseStringParam(rawQuery.q, false);
     if (q === null) {
       errors.push("q must be a string");
-    } else {
+    } else if (!isAbsentQueryValue(q)) {
       value.q = q;
     }
   }
@@ -98,8 +102,12 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     const attributeKey = key.slice("attr.".length);
     const attributeValue = parseStringParam(rawValue, false);
 
-    if (attributeKey.length === 0 || attributeValue === null) {
+    if (attributeKey.length === 0) {
       errors.push(`attribute filter ${key} must be a string`);
+      continue;
+    }
+
+    if (attributeValue === null || isAbsentQueryValue(attributeValue)) {
       continue;
     }
 
@@ -165,4 +173,13 @@ function parseEnumParam<T extends string>(value: unknown, options: readonly T[])
   }
 
   return value as T;
+}
+
+function isAbsentQueryValue(value: unknown): boolean {
+  if (typeof value !== "string") {
+    return false;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized.length === 0 || normalized === "null" || normalized === "undefined";
 }

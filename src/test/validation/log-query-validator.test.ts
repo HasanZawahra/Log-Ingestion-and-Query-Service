@@ -88,4 +88,40 @@ describe("log query validation", () => {
       "cursor must be a valid base64url-encoded log cursor",
     ]);
   });
+
+  it("ignores an explicit empty cursor value in query parsing", () => {
+    const result = parseLogQueryRequest({
+      cursor: "",
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.value).toEqual({});
+  });
+
+  it("ignores blank optional filters in query parsing", () => {
+    const result = parseLogQueryRequest({
+      service: "   ",
+      level: "",
+      q: "",
+      limit: "",
+      "attr.requestId": "",
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.value).toEqual({});
+  });
+
+  it("ignores null-like optional filters in query parsing", () => {
+    const result = parseLogQueryRequest({
+      service: "null",
+      level: "undefined",
+      q: "null",
+      limit: "undefined",
+      cursor: "null",
+      "attr.requestId": "null",
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.value).toEqual({});
+  });
 });
