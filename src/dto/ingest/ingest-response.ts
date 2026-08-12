@@ -8,6 +8,5 @@ export interface RejectedEntry {
 
 export interface IngestResponse {
   accepted: number;
-  rejected: number;
-  rejectedEntries: RejectedEntry[];
+  rejected: RejectedEntry[];
 }

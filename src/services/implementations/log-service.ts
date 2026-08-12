@@ -23,8 +23,7 @@ export class LogService implements ILogService {
 
     const response = {
       accepted: validEntries.length,
-      rejected: rejectedEntries.length,
-      rejectedEntries,
+      rejected: rejectedEntries,
     };
 
     if (response.accepted === 0) {

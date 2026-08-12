@@ -25,7 +25,7 @@ describe("buildLogAggregateQuery", () => {
       "WHERE timestamp >= $1 AND timestamp < $2 AND service = $3 AND level = $4"
     );
     expect(query.text).toContain("message ILIKE $5");
-    expect(query.text).toContain("attributes @> $6::jsonb");
+    expect(query.text).toContain("(attributes ->> $6) = $7");
     expect(query.text).toContain("GROUP BY 1, 2");
     expect(query.text).toContain('ORDER BY start ASC, "group" ASC NULLS FIRST');
     expect(query.values).toEqual([
@@ -34,7 +34,8 @@ describe("buildLogAggregateQuery", () => {
       "checkout",
       "info",
       "%payment failed%",
-      JSON.stringify({ region: "eu-west" }),
+      "region",
+      "eu-west",
     ]);
   });
 

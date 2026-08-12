@@ -22,8 +22,7 @@ describe("LogController", () => {
     };
     const ingestResponse: IngestResponse = {
       accepted: 1,
-      rejected: 0,
-      rejectedEntries: [],
+      rejected: [],
     };
     const logService: ILogService = {
       ingestLogs: vi.fn().mockResolvedValue(ingestResponse),
@@ -64,8 +63,7 @@ describe("LogController", () => {
     ];
     const ingestResponse: IngestResponse = {
       accepted: 1,
-      rejected: 0,
-      rejectedEntries: [],
+      rejected: [],
     };
     const logService: ILogService = {
       ingestLogs: vi.fn().mockResolvedValue(ingestResponse),
@@ -116,8 +114,7 @@ describe("LogController", () => {
       ingestLogs: vi.fn().mockRejectedValue(
         new AllEntriesRejectedError({
           accepted: 0,
-          rejected: 1,
-          rejectedEntries: [
+          rejected: [
             {
               index: 0,
               reason: "message must be a non-empty string",
@@ -157,9 +154,9 @@ describe("LogController", () => {
 
   it("returns query results from the log service", async () => {
     const queryResponse: LogQueryResponse = {
-      entries: [
+      logs: [
         {
-          id: 9,
+          id: "9",
           timestamp: "2026-08-03T10:00:00.000Z",
           level: "info",
           service: "checkout",

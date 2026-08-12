@@ -12,7 +12,7 @@ import type { ILogQueryBuilder } from "../interfaces/log-query-builder.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";
 import { buildBulkInsert, chunkLogEntries } from "./builders/log-bulk-insert-query.js";
 import { PostgresLogAggregateQueryBuilder } from "./builders/log-aggregate-query-builder.js";
-import { MAX_LOG_QUERY_LIMIT } from "../../constants/log.js";
+import { DEFAULT_LOG_QUERY_LIMIT } from "../../constants/log.js";
 import { PostgresLogQueryBuilder } from "./builders/log-query-builder.js";
 
 export class PostgresLogRepository implements ILogRepository {
@@ -55,7 +55,7 @@ export class PostgresLogRepository implements ILogRepository {
   }
 
   async queryLogs(request: LogQueryRequest): Promise<LogQueryResponse> {
-    const pageSize = request.limit ?? MAX_LOG_QUERY_LIMIT;
+    const pageSize = request.limit ?? DEFAULT_LOG_QUERY_LIMIT;
     const query = this.logQueryBuilder.buildLogQuery({
       ...request,
       limit: pageSize + 1,
@@ -67,14 +67,14 @@ export class PostgresLogRepository implements ILogRepository {
       const { rows } = await client.query(query.text, query.values);
       const hasNextPage = rows.length > pageSize;
       const visibleRows = hasNextPage ? rows.slice(0, pageSize) : rows;
-      const entries = visibleRows.map(mapLogQueryEntry);
-      const lastEntry = entries.at(-1);
+      const logs = visibleRows.map(mapLogQueryEntry);
+      const lastLog = logs.at(-1);
 
       return {
-        entries,
+        logs,
         next_cursor:
-          hasNextPage && lastEntry
-            ? encodeLogCursor({ timestamp: lastEntry.timestamp, id: lastEntry.id })
+          hasNextPage && lastLog
+            ? encodeLogCursor({ timestamp: lastLog.timestamp, id: Number(lastLog.id) })
             : null,
       };
     } finally {
@@ -100,7 +100,7 @@ export class PostgresLogRepository implements ILogRepository {
 
 function mapLogQueryEntry(row: Record<string, unknown>): LogQueryEntry {
   return {
-    id: Number(row.id),
+    id: String(row.id),
     timestamp: normalizeTimestamp(row.timestamp),
     level: row.level as LogQueryEntry["level"],
     service: String(row.service),

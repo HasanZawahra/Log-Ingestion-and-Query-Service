@@ -52,7 +52,7 @@ export class PostgresLogAggregateQueryBuilder implements ILogAggregateQueryBuild
     );
 
     for (const [key, value] of attributeFilters) {
-      clauses.push(`attributes @> ${params.push(JSON.stringify({ [key]: value }))}::jsonb`);
+      clauses.push(`(attributes ->> ${params.push(key)}) = ${params.push(value)}`);
     }
 
     return {

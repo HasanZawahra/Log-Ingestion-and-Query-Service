@@ -1,7 +1,7 @@
 import { IngestLogLevel } from "../ingest/ingest-request.js";
 
 export interface LogQueryEntry {
-  id: number;
+  id: string;
   timestamp: string;
   level: IngestLogLevel;
   service: string;
@@ -10,6 +10,6 @@ export interface LogQueryEntry {
 }
 
 export interface LogQueryResponse {
-  entries: LogQueryEntry[];
+  logs: LogQueryEntry[];
   next_cursor: string | null;
 }

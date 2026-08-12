@@ -47,8 +47,8 @@ describe("LogService", () => {
       },
     ]);
     expect(response.accepted).toBe(1);
-    expect(response.rejected).toBe(1);
-    expect(response.rejectedEntries[0]?.reason).toContain("message");
+    expect(response.rejected).toHaveLength(1);
+    expect(response.rejected[0]?.reason).toContain("message");
   });
 
   it("throws when every entry is rejected", async () => {
@@ -80,7 +80,7 @@ describe("LogService", () => {
 
   it("validates query parameters before querying logs", async () => {
     const queryLogs = vi.fn().mockResolvedValue({
-      entries: [],
+      logs: [],
       next_cursor: null,
     } satisfies LogQueryResponse);
     const repository: ILogRepository = {
@@ -103,9 +103,9 @@ describe("LogService", () => {
 
   it("delegates valid log queries to the repository", async () => {
     const response: LogQueryResponse = {
-      entries: [
+      logs: [
         {
-          id: 9,
+          id: "9",
           timestamp: "2026-08-03T10:00:00.000Z",
           level: "info",
           service: "checkout",

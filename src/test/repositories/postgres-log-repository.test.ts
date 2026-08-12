@@ -163,9 +163,9 @@ describe("PostgresLogRepository", () => {
       "SELECT id, timestamp, level, service, message, attributes FROM public.logs LIMIT $1",
       [2]
     );
-    expect(response.entries).toHaveLength(1);
-    expect(response.entries[0]).toEqual({
-      id: 9,
+    expect(response.logs).toHaveLength(1);
+    expect(response.logs[0]).toEqual({
+      id: "9",
       timestamp: "2026-08-03T10:00:00.000Z",
       level: "info",
       service: "checkout",
