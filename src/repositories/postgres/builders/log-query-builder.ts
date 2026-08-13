@@ -3,6 +3,7 @@ import { DEFAULT_LOG_QUERY_LIMIT } from "../../../constants/log.js";
 import { LOG_QUERY_ORDER_BY, LOG_QUERY_SELECT_COLUMNS } from "../../../constants/log-query.js";
 import type { LogQueryRequest } from "../../../dto/log-query/log-query-request.js";
 import { InvalidLogCursorError } from "../../../errors/logs/invalid-log-cursor-error.js";
+import { encodeAttributeKv } from "../../../utils/attribute-kv.js";
 import { decodeLogCursor } from "../../../utils/log-cursor.js";
 import type { ILogQueryBuilder, LogQuerySql } from "../../interfaces/log-query-builder.js";
 
@@ -61,7 +62,9 @@ export class PostgresLogQueryBuilder implements ILogQueryBuilder {
     );
 
     for (const [key, value] of attributeFilters) {
-      clauses.push(`(attributes ->> ${params.push(key)}) = ${params.push(value)}`);
+      clauses.push(
+        `logs_attributes_kv(attributes) @> ARRAY[${params.push(encodeAttributeKv(key, value))}]`
+      );
     }
 
     const limit = request.limit ?? DEFAULT_LOG_QUERY_LIMIT;

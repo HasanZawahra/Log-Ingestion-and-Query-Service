@@ -19,6 +19,12 @@ const logRepository = new PostgresLogRepository(logQueryBuilder);
 const logService = new LogService(logRepository);
 const logController = new LogController(logService);
 
+export { logRepository };
+
+export function getLogRepository(): PostgresLogRepository {
+  return logRepository;
+}
+
 app.get(HEALTH_ROUTE, (req, res) => healthController.getHealth(req, res));
 app.get(LOGS_ROUTE, (req, res) => logController.queryLogs(req, res));
 app.get(LOGS_AGGREGATE_ROUTE, (req, res) => logController.queryLogAggregates(req, res));

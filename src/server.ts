@@ -1,4 +1,5 @@
 import { app } from "./app.js";
+import { getLogRepository } from "./app.js";
 import { DEFAULT_PORT } from "./constants/app.js";
 import { getRetentionConfig } from "./config/retention.js";
 import { initializeDatabase } from "./config/database.js";
@@ -28,6 +29,7 @@ export async function startServer() {
 
   const shutdown = async () => {
     retentionWorker.stop();
+    await getLogRepository().closeIngestBatcher();
     await new Promise<void>((resolve, reject) => {
       server.close((error) => {
         if (error) {

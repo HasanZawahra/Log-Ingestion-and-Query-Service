@@ -7,6 +7,7 @@ import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js
 export interface ILogRepository {
   ensureSchemaReady(): Promise<void>;
   saveLogs(entries: IngestLogEntry[]): Promise<void>;
+  flushPendingLogs(): Promise<void>;
   queryLogs(request: LogQueryRequest): Promise<LogQueryResponse>;
   queryLogAggregates(request: LogAggregateRequest): Promise<LogAggregateResponse>;
 }

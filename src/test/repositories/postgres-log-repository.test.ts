@@ -33,7 +33,7 @@ describe("PostgresLogRepository", () => {
     };
   }
 
-  it("persists logs with one query per chunk", async () => {
+  it("persists logs via the ingest batcher within a transaction", async () => {
     mockConnect.mockResolvedValue({
       query: mockQuery,
       release: mockRelease,
@@ -60,11 +60,12 @@ describe("PostgresLogRepository", () => {
 
     await repository.saveLogs(entries);
 
-    expect(mockQuery).toHaveBeenCalledTimes(1);
-    expect(mockQuery).toHaveBeenCalledWith(
+    expect(mockQuery.mock.calls.map((call) => call[0])).toEqual([
+      "BEGIN",
       expect.stringContaining("INSERT INTO public.logs"),
-      expect.any(Array)
-    );
+      expect.stringContaining("INSERT INTO public.log_minute_aggregates"),
+      "COMMIT",
+    ]);
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 
@@ -83,9 +84,12 @@ describe("PostgresLogRepository", () => {
 
     await repository.saveLogs(entries);
 
-    expect(mockQuery).toHaveBeenCalledTimes(2);
-    expect(mockQuery.mock.calls[0]?.[1]).toHaveLength(MAX_LOGS_PER_INSERT * 5);
-    expect(mockQuery.mock.calls[1]?.[1]).toHaveLength(5);
+    const insertCalls = mockQuery.mock.calls.filter((call) =>
+      String(call[0]).includes("INSERT INTO public.logs")
+    );
+    expect(insertCalls).toHaveLength(2);
+    expect(insertCalls[0]?.[1]).toHaveLength(MAX_LOGS_PER_INSERT * 5);
+    expect(insertCalls[1]?.[1]).toHaveLength(5);
     expect(mockRelease).toHaveBeenCalledTimes(1);
   });
 

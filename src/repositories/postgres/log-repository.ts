@@ -10,12 +10,14 @@ import { encodeLogCursor } from "../../utils/log-cursor.js";
 import type { ILogAggregateQueryBuilder } from "../interfaces/log-aggregate-query-builder.js";
 import type { ILogQueryBuilder } from "../interfaces/log-query-builder.js";
 import type { ILogRepository } from "../interfaces/log-repository.js";
-import { buildBulkInsert, chunkLogEntries } from "./builders/log-bulk-insert-query.js";
+import { IngestBatcher } from "./ingest-batcher.js";
 import { PostgresLogAggregateQueryBuilder } from "./builders/log-aggregate-query-builder.js";
 import { DEFAULT_LOG_QUERY_LIMIT } from "../../constants/log.js";
 import { PostgresLogQueryBuilder } from "./builders/log-query-builder.js";
 
 export class PostgresLogRepository implements ILogRepository {
+  private readonly ingestBatcher = new IngestBatcher();
+
   constructor(
     private readonly logQueryBuilder: ILogQueryBuilder = new PostgresLogQueryBuilder(),
     private readonly logAggregateQueryBuilder: ILogAggregateQueryBuilder = new PostgresLogAggregateQueryBuilder()
@@ -42,16 +44,16 @@ export class PostgresLogRepository implements ILogRepository {
       return;
     }
 
-    const client = await pool.connect();
+    await this.ingestBatcher.save(entries);
+  }
 
-    try {
-      for (const chunk of chunkLogEntries(entries)) {
-        const query = buildBulkInsert(chunk);
-        await client.query(query.text, query.values);
-      }
-    } finally {
-      client.release();
-    }
+  async flushPendingLogs(): Promise<void> {
+    await this.ingestBatcher.flushPending();
+  }
+
+  async closeIngestBatcher(): Promise<void> {
+    await this.ingestBatcher.flushPending();
+    this.ingestBatcher.close();
   }
 
   async queryLogs(request: LogQueryRequest): Promise<LogQueryResponse> {

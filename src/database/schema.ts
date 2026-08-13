@@ -1,15 +1,17 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   bigserial,
   index,
   jsonb,
   pgEnum,
+  primaryKey,
   pgTable,
   text,
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
-import { LOGS_TABLE_NAME } from "../constants/database.js";
+import { LOG_MINUTE_AGGREGATES_TABLE_NAME, LOGS_TABLE_NAME } from "../constants/database.js";
 import { LOG_LEVELS } from "../constants/log.js";
 
 export const logLevel = pgEnum("log_level", [...LOG_LEVELS]);
@@ -33,19 +35,38 @@ export const logs = pgTable(
       table.timestamp.desc(),
       table.id.desc()
     ),
-    serviceLevelTimestampIdx: index("logs_service_level_timestamp_id_idx").on(
-      table.service,
-      table.level,
-      table.timestamp.desc(),
-      table.id.desc()
-    ),
     levelTimestampIdx: index("logs_level_timestamp_id_idx").on(
       table.level,
       table.timestamp.desc(),
       table.id.desc()
     ),
+    attributesKvIdx: index("logs_attributes_kv_idx").using(
+      "gin",
+      sql`logs_attributes_kv(${table.attributes})`
+    ),
     messageTrgmIdx: index("logs_message_trgm_idx").using("gin", sql`message gin_trgm_ops`),
-    attributesIdx: index("logs_attributes_gin_idx").using("gin", table.attributes),
+  })
+);
+
+export const logMinuteAggregates = pgTable(
+  LOG_MINUTE_AGGREGATES_TABLE_NAME,
+  {
+    bucketStart: timestamp("bucket_start", { withTimezone: true }).notNull(),
+    service: varchar("service", { length: 255 }).notNull(),
+    level: logLevel("level").notNull(),
+    count: bigint("count", { mode: "number" }).notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.bucketStart, table.service, table.level] }),
+    bucketStartIdx: index("log_minute_aggregates_bucket_start_idx").on(table.bucketStart),
+    serviceBucketStartIdx: index("log_minute_aggregates_service_bucket_start_idx").on(
+      table.service,
+      table.bucketStart
+    ),
+    levelBucketStartIdx: index("log_minute_aggregates_level_bucket_start_idx").on(
+      table.level,
+      table.bucketStart
+    ),
   })
 );
 

@@ -93,8 +93,8 @@ describe("retention lifecycle integration", () => {
       expect(onceSpy).toHaveBeenCalledWith("SIGTERM", expect.any(Function));
 
       signalHandlers.SIGINT?.();
-      await Promise.resolve();
-      await Promise.resolve();
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      await new Promise<void>((resolve) => setImmediate(resolve));
 
       expect(mockWorkerStop).toHaveBeenCalledTimes(1);
       expect(mockCloseDatabase).toHaveBeenCalledTimes(1);

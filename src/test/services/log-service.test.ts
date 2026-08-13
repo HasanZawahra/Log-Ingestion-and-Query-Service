@@ -14,6 +14,7 @@ describe("LogService", () => {
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
       saveLogs,
+      flushPendingLogs: vi.fn(),
       queryLogs: vi.fn(),
       queryLogAggregates: vi.fn(),
     };
@@ -56,6 +57,7 @@ describe("LogService", () => {
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
       saveLogs,
+      flushPendingLogs: vi.fn(),
       queryLogs: vi.fn(),
       queryLogAggregates: vi.fn(),
     };
@@ -86,6 +88,7 @@ describe("LogService", () => {
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
+      flushPendingLogs: vi.fn(),
       queryLogs,
       queryLogAggregates: vi.fn(),
     };
@@ -119,6 +122,7 @@ describe("LogService", () => {
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
+      flushPendingLogs: vi.fn(),
       queryLogs,
       queryLogAggregates: vi.fn(),
     };
@@ -143,6 +147,7 @@ describe("LogService", () => {
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
+      flushPendingLogs: vi.fn(),
       queryLogs: vi.fn(),
       queryLogAggregates,
     };
@@ -174,6 +179,7 @@ describe("LogService", () => {
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
       saveLogs: vi.fn(),
+      flushPendingLogs: vi.fn(),
       queryLogs: vi.fn(),
       queryLogAggregates,
     };
