@@ -35,7 +35,8 @@ export const logs = pgTable(
       table.timestamp.desc(),
       table.id.desc()
     ),
-    levelTimestampIdx: index("logs_level_timestamp_id_idx").on(
+    serviceLevelTimestampIdx: index("logs_service_level_timestamp_id_idx").on(
+      table.service,
       table.level,
       table.timestamp.desc(),
       table.id.desc()

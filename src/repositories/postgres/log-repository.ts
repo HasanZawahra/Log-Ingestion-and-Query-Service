@@ -70,13 +70,18 @@ export class PostgresLogRepository implements ILogRepository {
       const hasNextPage = rows.length > pageSize;
       const visibleRows = hasNextPage ? rows.slice(0, pageSize) : rows;
       const logs = visibleRows.map(mapLogQueryEntry);
-      const lastLog = logs.at(-1);
+      const lastRow = visibleRows.at(-1);
 
       return {
         logs,
         next_cursor:
-          hasNextPage && lastLog
-            ? encodeLogCursor({ timestamp: lastLog.timestamp, id: Number(lastLog.id) })
+          hasNextPage && lastRow
+            ? encodeLogCursor({
+                timestamp:
+                  (lastRow.cursor_timestamp as string | undefined) ??
+                  normalizeTimestamp(lastRow.timestamp),
+                id: Number(lastRow.id),
+              })
             : null,
       };
     } finally {

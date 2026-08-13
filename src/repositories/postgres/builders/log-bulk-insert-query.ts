@@ -68,7 +68,12 @@ export function groupEntriesForAggregation(entries: IngestLogEntry[]): Aggregate
     });
   }
 
-  return Array.from(groups.values());
+  return Array.from(groups.values()).sort(
+    (left, right) =>
+      left.bucketStart.localeCompare(right.bucketStart) ||
+      left.service.localeCompare(right.service) ||
+      left.level.localeCompare(right.level)
+  );
 }
 
 export function buildAggregateUpsert(groups: AggregateGroup[]): BulkInsertQuery {

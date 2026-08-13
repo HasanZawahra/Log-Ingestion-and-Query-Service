@@ -73,9 +73,9 @@ describe("groupEntriesForAggregation", () => {
 
     expect(groups).toEqual([
       { bucketStart: "2026-08-03T10:00:00.000Z", service: "checkout", level: "info", count: 1 },
-      { bucketStart: "2026-08-03T10:01:00.000Z", service: "checkout", level: "info", count: 2 },
-      { bucketStart: "2026-08-03T10:01:00.000Z", service: "checkout", level: "error", count: 1 },
       { bucketStart: "2026-08-03T10:01:00.000Z", service: "billing", level: "info", count: 1 },
+      { bucketStart: "2026-08-03T10:01:00.000Z", service: "checkout", level: "error", count: 1 },
+      { bucketStart: "2026-08-03T10:01:00.000Z", service: "checkout", level: "info", count: 2 },
     ]);
   });
 });

@@ -15,6 +15,13 @@
       "when": 1786581837300,
       "tag": "0001_dazzling_magik",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786618599166,
+      "tag": "0002_index-tuning",
+      "breakpoints": true
     }
   ]
 }

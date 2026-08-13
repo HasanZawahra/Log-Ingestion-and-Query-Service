@@ -10,14 +10,12 @@ import {
 
 export interface IngestBatcherOptions {
   targetFlushSize: number;
-  flushIntervalMs: number;
   maxConcurrentFlushes: number;
 }
 
 export const DEFAULT_INGEST_BATCHER_OPTIONS: IngestBatcherOptions = {
-  targetFlushSize: MAX_LOGS_PER_INSERT * 2,
-  flushIntervalMs: 20,
-  maxConcurrentFlushes: 2,
+  targetFlushSize: MAX_LOGS_PER_INSERT,
+  maxConcurrentFlushes: 3,
 };
 
 interface PendingBatch {
@@ -28,8 +26,8 @@ interface PendingBatch {
 
 export class IngestBatcher {
   private readonly queue: PendingBatch[] = [];
-  private flushTimer: NodeJS.Timeout | null = null;
   private activeFlushes = 0;
+  private readonly waiters = new Set<() => void>();
   private closed = false;
 
   constructor(private readonly options: IngestBatcherOptions = DEFAULT_INGEST_BATCHER_OPTIONS) {}
@@ -45,7 +43,8 @@ export class IngestBatcher {
 
     return new Promise<void>((resolve, reject) => {
       this.queue.push({ entries, resolve, reject });
-      this.scheduleFlush();
+      this.wakeAll();
+      this.spawnFlush();
     });
   }
 
@@ -53,33 +52,22 @@ export class IngestBatcher {
     this.spawnFlush();
 
     while (this.queue.length > 0 || this.activeFlushes > 0) {
+      this.wakeAll();
       await new Promise<void>((resolve) => setImmediate(resolve));
     }
   }
 
   close(): void {
     this.closed = true;
-
-    if (this.flushTimer) {
-      clearTimeout(this.flushTimer);
-      this.flushTimer = null;
-    }
+    this.wakeAll();
   }
 
-  private scheduleFlush(): void {
-    const queuedCount = this.queue.reduce((sum, batch) => sum + batch.entries.length, 0);
+  private wakeAll(): void {
+    const waiters = Array.from(this.waiters);
+    this.waiters.clear();
 
-    if (queuedCount >= this.options.targetFlushSize) {
-      this.spawnFlush();
-      return;
-    }
-
-    if (!this.flushTimer && this.activeFlushes === 0) {
-      this.flushTimer = setTimeout(() => {
-        this.flushTimer = null;
-        this.spawnFlush();
-      }, this.options.flushIntervalMs);
-      this.flushTimer.unref?.();
+    for (const waiter of waiters) {
+      waiter();
     }
   }
 
@@ -92,15 +80,32 @@ export class IngestBatcher {
 
     void this.runFlushLoop().finally(() => {
       this.activeFlushes -= 1;
-      this.scheduleFlush();
+      this.spawnFlush();
     });
   }
 
   private async runFlushLoop(): Promise<void> {
     while (this.queue.length > 0) {
-      const batches = this.takeBatches();
+      const batches = await this.waitForBatches();
+
+      if (batches.length === 0) {
+        break;
+      }
+
       await this.persist(batches);
     }
+  }
+
+  private waitForBatches(): Promise<PendingBatch[]> {
+    return new Promise((resolve) => {
+      const finish = () => {
+        this.waiters.delete(finish);
+        resolve(this.takeBatches());
+      };
+
+      this.waiters.add(finish);
+      queueMicrotask(finish);
+    });
   }
 
   private takeBatches(): PendingBatch[] {
@@ -146,22 +151,37 @@ export async function persistEntries(entries: IngestLogEntry[]): Promise<void> {
   const client = await pool.connect();
 
   try {
-    await client.query("BEGIN");
+    for (let attempt = 1; ; attempt += 1) {
+      try {
+        await client.query("BEGIN");
 
-    try {
-      for (const chunk of chunkLogEntries(entries)) {
-        const query = buildLogsInsert(chunk);
-        await client.query(query.text, query.values);
+        try {
+          for (const chunk of chunkLogEntries(entries)) {
+            const query = buildLogsInsert(chunk);
+            await client.query(query.text, query.values);
+          }
+
+          const groups = groupEntriesForAggregation(entries);
+          const aggregateQuery = buildAggregateUpsert(groups);
+          await client.query(aggregateQuery.text, aggregateQuery.values);
+
+          await client.query("COMMIT");
+          return;
+        } catch (error) {
+          await client.query("ROLLBACK");
+          throw error;
+        }
+      } catch (error) {
+        const isRetryable =
+          attempt < 3 &&
+          typeof error === "object" &&
+          error !== null &&
+          (error as { code?: string }).code === "40P01";
+
+        if (!isRetryable) {
+          throw error;
+        }
       }
-
-      const groups = groupEntriesForAggregation(entries);
-      const aggregateQuery = buildAggregateUpsert(groups);
-      await client.query(aggregateQuery.text, aggregateQuery.values);
-
-      await client.query("COMMIT");
-    } catch (error) {
-      await client.query("ROLLBACK");
-      throw error;
     }
   } finally {
     client.release();

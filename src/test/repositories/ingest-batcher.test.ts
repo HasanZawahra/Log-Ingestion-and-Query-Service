@@ -40,21 +40,19 @@ describe("IngestBatcher", () => {
   async function createBatcher(
     overrides: Partial<{
       targetFlushSize: number;
-      flushIntervalMs: number;
       maxConcurrentFlushes: number;
     }> = {}
   ) {
     const { IngestBatcher } = await import("../../repositories/postgres/ingest-batcher.js");
     return new IngestBatcher({
       targetFlushSize: MAX_LOGS_PER_INSERT,
-      flushIntervalMs: 10,
       maxConcurrentFlushes: 2,
       ...overrides,
     });
   }
 
   it("coalesces concurrent saves into one flush", async () => {
-    const batcher = await createBatcher({ flushIntervalMs: 0 });
+    const batcher = await createBatcher();
 
     const first = batcher.save([createEntry(0)]);
     const second = batcher.save([createEntry(1)]);

@@ -73,6 +73,7 @@ export class PostgresLogQueryBuilder implements ILogQueryBuilder {
     return {
       text: [
         `SELECT ${LOG_QUERY_SELECT_COLUMNS}`,
+        `, to_char(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_timestamp`,
         `FROM ${PUBLIC_LOGS_TABLE_NAME}`,
         whereClause,
         LOG_QUERY_ORDER_BY,
