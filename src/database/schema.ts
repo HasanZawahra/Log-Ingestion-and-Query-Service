@@ -41,11 +41,6 @@ export const logs = pgTable(
       table.timestamp.desc(),
       table.id.desc()
     ),
-    attributesKvIdx: index("logs_attributes_kv_idx").using(
-      "gin",
-      sql`logs_attributes_kv(${table.attributes})`
-    ),
-    messageTrgmIdx: index("logs_message_trgm_idx").using("gin", sql`message gin_trgm_ops`),
   })
 );
 
