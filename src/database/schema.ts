@@ -41,6 +41,10 @@ export const logs = pgTable(
       table.timestamp.desc(),
       table.id.desc()
     ),
+    attributesKvIdx: index("logs_attributes_kv_idx").using(
+      "gin",
+      sql`logs_attributes_kv(${table.attributes})`
+    ),
   })
 );
 
@@ -54,7 +58,6 @@ export const logMinuteAggregates = pgTable(
   },
   (table) => ({
     pk: primaryKey({ columns: [table.bucketStart, table.service, table.level] }),
-    bucketStartIdx: index("log_minute_aggregates_bucket_start_idx").on(table.bucketStart),
     serviceBucketStartIdx: index("log_minute_aggregates_service_bucket_start_idx").on(
       table.service,
       table.bucketStart

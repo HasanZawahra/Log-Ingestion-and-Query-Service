@@ -41,14 +41,16 @@ describe("buildLogQuery", () => {
     ]);
   });
 
-  it("builds an attribute-filter query", () => {
+  it("builds an attribute-filter query driven by the GIN index", () => {
     const query = buildLogQuery({
       attributeFilters: {
         region: "eu-west",
       },
     });
 
+    expect(query.text).toContain("WITH attribute_matches AS MATERIALIZED (");
     expect(query.text).toContain("WHERE logs_attributes_kv(attributes) @> ARRAY[$1]");
+    expect(query.text).toContain("FROM attribute_matches");
     expect(query.text).toContain("LIMIT $2");
     expect(query.values).toEqual(["6:region=eu-west", DEFAULT_LOG_QUERY_LIMIT]);
   });
@@ -100,14 +102,22 @@ describe("buildLogQuery", () => {
 
     const query = buildLogQuery(request);
 
-    expect(query.text).toContain("SELECT id, timestamp, level, service, message, attributes");
-    expect(query.text).toContain("FROM public.logs");
+    expect(query.text).toContain("WITH attribute_matches AS MATERIALIZED (");
     expect(query.text).toContain(
-      "WHERE service = $1 AND level = $2 AND timestamp >= $3 AND timestamp < $4 AND message ILIKE $5 AND (timestamp, id) < ($6, $7) AND logs_attributes_kv(attributes) @> ARRAY[$8] AND logs_attributes_kv(attributes) @> ARRAY[$9]"
+      "FROM attribute_matches"
+    );
+    expect(query.text).toContain("SELECT id, timestamp, level, service, message, attributes");
+    expect(query.text).toContain(
+      "WHERE logs_attributes_kv(attributes) @> ARRAY[$1] AND logs_attributes_kv(attributes) @> ARRAY[$2]"
+    );
+    expect(query.text).toContain(
+      "WHERE service = $3 AND level = $4 AND timestamp >= $5 AND timestamp < $6 AND message ILIKE $7 AND (timestamp, id) < ($8, $9)"
     );
     expect(query.text).toContain("ORDER BY timestamp DESC NULLS LAST, id DESC NULLS LAST");
     expect(query.text).toContain("LIMIT $10");
     expect(query.values).toEqual([
+      "6:region=eu-west",
+      "9:requestId=req-123",
       "checkout",
       "info",
       "2026-08-03T10:00:00.000Z",
@@ -115,8 +125,6 @@ describe("buildLogQuery", () => {
       "%payment failed%",
       "2026-08-03T10:30:00.000Z",
       44,
-      "6:region=eu-west",
-      "9:requestId=req-123",
       25,
     ]);
   });
