@@ -15,7 +15,7 @@ export interface IngestBatcherOptions {
 
 export const DEFAULT_INGEST_BATCHER_OPTIONS: IngestBatcherOptions = {
   targetFlushSize: MAX_LOGS_PER_INSERT,
-  maxConcurrentFlushes: 3,
+  maxConcurrentFlushes: 5,
 };
 
 interface PendingBatch {
@@ -111,21 +111,27 @@ export class IngestBatcher {
   private takeBatches(): PendingBatch[] {
     const batches: PendingBatch[] = [];
     let count = 0;
+    let index = 0;
 
-    while (this.queue.length > 0) {
-      const next = this.queue[0] as PendingBatch;
+    while (index < this.queue.length) {
+      const next = this.queue[index] as PendingBatch;
 
       if (count > 0 && count + next.entries.length > this.options.targetFlushSize) {
         break;
       }
 
-      this.queue.shift();
       batches.push(next);
       count += next.entries.length;
+      index++;
     }
 
-    if (batches.length === 0 && this.queue.length > 0) {
-      batches.push(this.queue.shift() as PendingBatch);
+    if (index === 0 && this.queue.length > 0) {
+      batches.push(this.queue[0] as PendingBatch);
+      index = 1;
+    }
+
+    if (index > 0) {
+      this.queue.splice(0, index);
     }
 
     return batches;

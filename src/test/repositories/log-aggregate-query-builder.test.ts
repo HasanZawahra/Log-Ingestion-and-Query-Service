@@ -21,21 +21,19 @@ describe("buildLogAggregateQuery", () => {
     );
     expect(query.text).toContain('service::text AS "group"');
     expect(query.text).toContain("COUNT(*)::int AS count");
-    expect(query.text).toContain("WITH attribute_matches AS MATERIALIZED (");
-    expect(query.text).toContain("WHERE logs_attributes_kv(attributes) @> ARRAY[$1]");
+    expect(query.text).toContain("FROM public.logs");
     expect(query.text).toContain(
-      "WHERE timestamp >= $2 AND timestamp < $3 AND service = $4 AND level = $5"
+      "WHERE timestamp >= $1 AND timestamp < $2 AND service = $3 AND level = $4 AND message ILIKE $5 AND logs_attributes_kv(attributes) @> ARRAY[$6]"
     );
-    expect(query.text).toContain("message ILIKE $6");
     expect(query.text).toContain("GROUP BY 1, 2");
     expect(query.text).toContain('ORDER BY start ASC, "group" ASC NULLS FIRST');
     expect(query.values).toEqual([
-      "6:region=eu-west",
       "2026-08-03T10:00:00.000Z",
       "2026-08-03T11:00:00.000Z",
       "checkout",
       "info",
       "%payment failed%",
+      "6:region=eu-west",
     ]);
   });
 

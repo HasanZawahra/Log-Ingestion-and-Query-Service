@@ -15,8 +15,6 @@ import type {
 } from "../../interfaces/log-aggregate-query-builder.js";
 import { encodeAttributeKv } from "../../../utils/attribute-kv.js";
 
-const ATTRIBUTE_MATCHES_CTE = "attribute_matches";
-
 class ParameterBuilder {
   private readonly values: unknown[] = [];
 
@@ -37,19 +35,7 @@ export class PostgresLogAggregateQueryBuilder implements ILogAggregateQueryBuild
     }
 
     const params = new ParameterBuilder();
-    const attributeFilters = Object.entries(request.attributeFilters ?? {}).sort(
-      ([left], [right]) => left.localeCompare(right)
-    );
-
-    const attributeClauses = attributeFilters.map(([key, value]) => {
-      return `logs_attributes_kv(attributes) @> ARRAY[${params.push(encodeAttributeKv(key, value))}]`;
-    });
-
-    if (attributeClauses.length > 0) {
-      return this.buildRawAggregateQuery(request, params, attributeClauses);
-    }
-
-    return this.buildRawAggregateQuery(request, params, []);
+    return this.buildRawAggregateQuery(request, params);
   }
 
   private buildRollupAggregateQuery(request: LogAggregateRequest): LogAggregateQuerySql {
@@ -88,8 +74,7 @@ export class PostgresLogAggregateQueryBuilder implements ILogAggregateQueryBuild
 
   private buildRawAggregateQuery(
     request: LogAggregateRequest,
-    params: ParameterBuilder,
-    attributeClauses: string[]
+    params: ParameterBuilder
   ): LogAggregateQuerySql {
     const bucketExpression = LOG_AGGREGATE_BUCKET_EXPRESSIONS[request.bucket];
     const groupExpression = request.groupBy
@@ -112,25 +97,23 @@ export class PostgresLogAggregateQueryBuilder implements ILogAggregateQueryBuild
       clauses.push(`message ILIKE ${params.push(`%${request.q}%`)}`);
     }
 
-    const usesAttributeDrivenCte = attributeClauses.length > 0;
-    const fromClause = usesAttributeDrivenCte ? ATTRIBUTE_MATCHES_CTE : PUBLIC_LOGS_TABLE_NAME;
+    const attributeFilters = Object.entries(request.attributeFilters ?? {}).sort(
+      ([left], [right]) => left.localeCompare(right)
+    );
+
+    for (const [key, value] of attributeFilters) {
+      clauses.push(
+        `logs_attributes_kv(attributes) @> ARRAY[${params.push(encodeAttributeKv(key, value))}]`
+      );
+    }
 
     return {
       text: [
-        ...(usesAttributeDrivenCte
-          ? [
-              `WITH ${ATTRIBUTE_MATCHES_CTE} AS MATERIALIZED (`,
-              `  SELECT timestamp, service, level`,
-              `  FROM ${PUBLIC_LOGS_TABLE_NAME}`,
-              `  WHERE ${attributeClauses.join(" AND ")}`,
-              `)`,
-            ]
-          : []),
         "SELECT",
         `  ${bucketExpression} AS start`,
         `  , ${groupExpression} AS "group"`,
         "  , COUNT(*)::int AS count",
-        `FROM ${fromClause}`,
+        `FROM ${PUBLIC_LOGS_TABLE_NAME}`,
         `WHERE ${clauses.join(" AND ")}`,
         "GROUP BY 1, 2",
         LOG_AGGREGATE_ORDER_BY,
