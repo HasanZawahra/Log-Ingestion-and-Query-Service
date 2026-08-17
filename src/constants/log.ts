@@ -5,3 +5,4 @@ export const MIN_LOG_QUERY_LIMIT = 1;
 export const DEFAULT_LOG_QUERY_LIMIT = 100;
 export const MAX_LOG_QUERY_LIMIT = 1000;
 export const LOG_QUERY_CURSOR_ENCODING = "base64url";
+
