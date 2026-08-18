@@ -12,6 +12,7 @@ import { decodeLogCursor, encodeLogCursor, isValidLogCursor } from "../../utils/
 
 describe("log query validation", () => {
   it("parses a valid query with combined filters", () => {
+    // Cover the full search surface in one request so we know filters compose cleanly.
     const since = "2026-08-03T10:00:00.000Z";
     const until = "2026-08-03T11:00:00.000Z";
     const cursor = encodeLogCursor({
@@ -45,6 +46,7 @@ describe("log query validation", () => {
         region: "eu-west",
       },
     });
+    // Cursor round-tripping proves the encoded token is usable for pagination.
     expect(decodeLogCursor(cursor)).toEqual({
       timestamp: since,
       id: 42,
@@ -53,6 +55,7 @@ describe("log query validation", () => {
   });
 
   it("validates timestamps and requires until to be greater than since", () => {
+    // Time windows should be parsed, then compared for ordering.
     const since = "2026-08-03T10:00:00.000Z";
     const until = "2026-08-03T09:59:59.000Z";
 
@@ -64,6 +67,7 @@ describe("log query validation", () => {
   });
 
   it("validates supported log levels and limit range", () => {
+    // Range checks keep query sizes bounded.
     expect(validateLogLevel("warn")).toEqual([]);
     expect(validateLogLevel("verbose")).toEqual(["level must be one of: debug, info, warn, error"]);
 
@@ -78,6 +82,7 @@ describe("log query validation", () => {
   });
 
   it("validates cursor format", () => {
+    // A valid encoded cursor should pass untouched.
     const cursor = encodeLogCursor({
       timestamp: "2026-08-03T10:00:00.000Z",
       id: 7,
@@ -90,6 +95,7 @@ describe("log query validation", () => {
   });
 
   it("ignores an explicit empty cursor value in query parsing", () => {
+    // The first page may arrive with cursor=, which should behave like no cursor.
     const result = parseLogQueryRequest({
       cursor: "",
     });
@@ -99,6 +105,7 @@ describe("log query validation", () => {
   });
 
   it("ignores blank optional filters in query parsing", () => {
+    // Blank optional parameters should be treated as absent rather than invalid.
     const result = parseLogQueryRequest({
       service: "   ",
       level: "",
@@ -112,6 +119,7 @@ describe("log query validation", () => {
   });
 
   it("ignores null-like optional filters in query parsing", () => {
+    // Some generators send literal strings like "null" or "undefined"; ignore them.
     const result = parseLogQueryRequest({
       service: "null",
       level: "undefined",

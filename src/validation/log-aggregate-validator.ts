@@ -10,12 +10,14 @@ import {
   LOG_AGGREGATE_GROUP_BY_VALUES,
 } from "../constants/log-aggregate.js";
 
+// Validation result wrapper used by the aggregate service path.
 export interface LogAggregateValidationResult {
   value: LogAggregateRequest | null;
   errors: string[];
 }
 
 export function parseLogAggregateRequest(query: unknown): LogAggregateValidationResult {
+  // The API expects query parameters to arrive as an object.
   if (typeof query !== "object" || query === null || Array.isArray(query)) {
     return {
       value: null,
@@ -28,6 +30,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
   const value = {} as Partial<LogAggregateRequest>;
   const attributeFilters: Record<string, string> = {};
 
+  // Aggregate queries always need a time window.
   const since = parseRequiredTimestampParam(rawQuery.since, "since", errors);
   const until = parseRequiredTimestampParam(rawQuery.until, "until", errors);
 
@@ -43,6 +46,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     errors.push("until must be greater than since");
   }
 
+  // Bucket size is required so the query knows how to group results.
   if (!("bucket" in rawQuery)) {
     errors.push("bucket is required");
   } else {
@@ -54,6 +58,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     }
   }
 
+  // Optional second grouping dimension.
   if ("group_by" in rawQuery) {
     const groupBy = parseEnumParam(rawQuery.group_by, LOG_AGGREGATE_GROUP_BY_VALUES);
     if (!groupBy) {
@@ -65,6 +70,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     }
   }
 
+  // Exact service filter.
   if ("service" in rawQuery) {
     const service = parseStringParam(rawQuery.service);
     if (service === null) {
@@ -74,6 +80,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     }
   }
 
+  // Exact level filter.
   if ("level" in rawQuery) {
     const level = parseLevelParam(rawQuery.level);
     if (!level) {
@@ -85,6 +92,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     }
   }
 
+  // Optional substring search over the message body.
   if ("q" in rawQuery) {
     const q = parseStringParam(rawQuery.q, false);
     if (q === null) {
@@ -94,6 +102,7 @@ export function parseLogAggregateRequest(query: unknown): LogAggregateValidation
     }
   }
 
+  // Support attr.* equality filters just like the log search endpoint.
   for (const [key, rawValue] of Object.entries(rawQuery)) {
     if (!key.startsWith("attr.")) {
       continue;

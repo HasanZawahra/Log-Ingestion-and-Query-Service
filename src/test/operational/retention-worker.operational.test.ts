@@ -14,6 +14,7 @@ function createDeferred<T>() {
 
 describe("retention operational flow", () => {
   it("runs a real cleanup cycle and prevents concurrent execution", async () => {
+    // This test exercises the live worker state machine, not just a single method.
     const deferred = createDeferred<number>();
     const repository: IRetentionRepository = {
       deleteExpiredLogs: vi.fn().mockReturnValueOnce(deferred.promise).mockResolvedValue(0),
@@ -41,6 +42,7 @@ describe("retention operational flow", () => {
     const firstRun = worker.executeCycle(new Date("2026-08-08T00:00:00.000Z"));
     await Promise.resolve();
 
+    // The second call should be skipped while the first cycle is still pending.
     await worker.executeCycle(new Date("2026-08-08T01:00:00.000Z"));
     expect(repository.deleteExpiredLogs).toHaveBeenCalledTimes(1);
     expect(logger.warn).toHaveBeenCalledWith(

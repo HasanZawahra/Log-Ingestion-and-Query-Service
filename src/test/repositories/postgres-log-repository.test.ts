@@ -19,12 +19,14 @@ vi.mock("../../config/database.js", () => ({
 
 describe("PostgresLogRepository", () => {
   beforeEach(() => {
+    // Each test gets a fresh set of database call counters.
     mockConnect.mockReset();
     mockQuery.mockReset();
     mockRelease.mockReset();
   });
 
   function createEntry(index: number): IngestLogEntry {
+    // Helper for generating predictable ingest rows.
     return {
       timestamp: `2026-08-03T10:00:${String(index % 60).padStart(2, "0")}.000Z`,
       level: "info",
@@ -34,6 +36,7 @@ describe("PostgresLogRepository", () => {
   }
 
   it("persists logs via the ingest batcher within a transaction", async () => {
+    // A normal save should result in one transactional flush.
     mockConnect.mockResolvedValue({
       query: mockQuery,
       release: mockRelease,
@@ -70,6 +73,7 @@ describe("PostgresLogRepository", () => {
   });
 
   it("splits very large batches into multiple insert queries", async () => {
+    // Oversized batches must be split to stay under statement limits.
     mockConnect.mockResolvedValue({
       query: mockQuery,
       release: mockRelease,
@@ -94,6 +98,7 @@ describe("PostgresLogRepository", () => {
   });
 
   it("does not connect when there are no logs to persist", async () => {
+    // Empty writes should short-circuit before touching the database.
     const { PostgresLogRepository } = await import("../../repositories/postgres/log-repository.js");
     const repository = new PostgresLogRepository();
 
@@ -103,6 +108,7 @@ describe("PostgresLogRepository", () => {
   });
 
   it("throws a typed error when the logs table is missing", async () => {
+    // Schema probes should fail loudly when the table is absent.
     mockConnect.mockResolvedValue({
       query: mockQuery.mockResolvedValueOnce({ rows: [{ table_name: null }] }),
       release: mockRelease,
@@ -116,6 +122,7 @@ describe("PostgresLogRepository", () => {
   });
 
   it("queries logs using the injected query builder", async () => {
+    // The repository should fetch one extra row to compute next_cursor.
     const buildLogQuery = vi.fn().mockReturnValue({
       text: "SELECT id, timestamp, level, service, message, attributes FROM public.logs LIMIT $1",
       values: [2],
@@ -186,6 +193,7 @@ describe("PostgresLogRepository", () => {
   });
 
   it("queries log aggregates using the injected aggregate query builder", async () => {
+    // Aggregate reads should simply map rows into the public response shape.
     const buildLogAggregateQuery = vi.fn().mockReturnValue({
       text: 'SELECT date_trunc(\'minute\', timestamp) AS start, NULL::text AS "group", COUNT(*)::int AS count FROM public.logs WHERE timestamp >= $1 AND timestamp < $2 GROUP BY 1, 2 ORDER BY start ASC, "group" ASC NULLS FIRST',
       values: ["2026-08-03T10:00:00.000Z", "2026-08-03T11:00:00.000Z"],

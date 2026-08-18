@@ -12,14 +12,19 @@ import {
 import { InvalidRetentionConfigError } from "../errors/config/invalid-retention-config-error.js";
 
 export interface RetentionConfig {
+  // Number of days logs are retained before deletion.
   logRetentionDays: number;
+  // How often the background worker runs.
   retentionIntervalMinutes: number;
+  // Maximum rows deleted per retention query.
   retentionDeleteBatchSize: number;
 }
 
 export function getRetentionConfig(env: NodeJS.ProcessEnv = process.env): RetentionConfig {
+  // Collect all configuration issues so startup can report them together.
   const issues: string[] = [];
 
+  // Each setting falls back to a sane default when unset.
   const logRetentionDays = readPositiveInteger(
     env[LOG_RETENTION_DAYS_ENV_VAR],
     DEFAULT_LOG_RETENTION_DAYS,
@@ -43,9 +48,11 @@ export function getRetentionConfig(env: NodeJS.ProcessEnv = process.env): Retent
   );
 
   if (issues.length > 0) {
+    // Invalid configuration is fatal because the worker cannot safely run.
     throw new InvalidRetentionConfigError(issues);
   }
 
+  // Return the parsed, validated retention settings.
   return {
     logRetentionDays,
     retentionIntervalMinutes,
@@ -54,6 +61,7 @@ export function getRetentionConfig(env: NodeJS.ProcessEnv = process.env): Retent
 }
 
 export function calculateRetentionCutoff(currentTime: Date, retentionDays: number): Date {
+  // Subtract the retention window from the current time.
   return new Date(currentTime.getTime() - retentionDays * 24 * 60 * 60 * 1000);
 }
 
@@ -65,10 +73,12 @@ function readPositiveInteger(
   issues: string[]
 ): number {
   if (rawValue === undefined || rawValue === "") {
+    // Missing values are allowed and fall back to the default.
     return fallback;
   }
 
   if (!/^\d+$/.test(rawValue)) {
+    // Reject non-integer values early so errors are explicit.
     issues.push(`${envName} must be an integer`);
     return fallback;
   }
@@ -76,6 +86,7 @@ function readPositiveInteger(
   const parsed = Number(rawValue);
 
   if (!Number.isInteger(parsed) || parsed < minimum) {
+    // The setting must be a positive integer above the configured floor.
     issues.push(`${envName} must be an integer greater than or equal to ${minimum}`);
     return fallback;
   }

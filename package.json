@@ -2,12 +2,14 @@
   "name": "ft-final-project",
   "version": "1.0.0",
   "description": "",
+  "_comment": "Scripts are organized for local development, CI, and production startup.",
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
     "test": "vitest run",
+    "_comment_scripts": "build compiles TypeScript, migrate:prod applies migrations in Docker, and lint/format keep the repo clean.",
     "build": "npx tsc",
     "start": "node dist/server.js",
     "dev": "npx tsc && node dist/server.js",

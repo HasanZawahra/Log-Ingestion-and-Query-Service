@@ -3,12 +3,14 @@ import type { LogQueryRequest } from "../dto/log-query/log-query-request.js";
 import { LOG_LEVELS, MAX_LOG_QUERY_LIMIT, MIN_LOG_QUERY_LIMIT } from "../constants/log.js";
 import { isValidLogCursor } from "../utils/log-cursor.js";
 
+// Result wrapper used by the service layer to surface validation failures.
 export interface LogQueryValidationResult {
   value: LogQueryRequest | null;
   errors: string[];
 }
 
 export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
+  // The API expects query parameters in object form.
   if (typeof query !== "object" || query === null || Array.isArray(query)) {
     return {
       value: null,
@@ -21,6 +23,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
   const value: LogQueryRequest = {};
   const attributeFilters: Record<string, string> = {};
 
+  // Exact service filtering.
   if ("service" in rawQuery) {
     if (typeof rawQuery.service !== "string") {
       errors.push("service must be a string");
@@ -29,6 +32,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Exact level filtering.
   if ("level" in rawQuery) {
     const level = parseLevelParam(rawQuery.level);
     if (level === null) {
@@ -40,6 +44,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Inclusive lower bound on the timestamp range.
   const since = "since" in rawQuery ? parseTimestampParam(rawQuery.since) : null;
   if ("since" in rawQuery) {
     if (!since) {
@@ -49,6 +54,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Exclusive upper bound on the timestamp range.
   const until = "until" in rawQuery ? parseTimestampParam(rawQuery.until) : null;
   if ("until" in rawQuery) {
     if (!until) {
@@ -58,10 +64,12 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Reject inverted time ranges.
   if (since && until && Date.parse(until) <= Date.parse(since)) {
     errors.push("until must be greater than since");
   }
 
+  // Substring search over the message body.
   if ("q" in rawQuery) {
     if (typeof rawQuery.q !== "string") {
       errors.push("q must be a string");
@@ -70,6 +78,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Clamp the requested page size to the supported range.
   if ("limit" in rawQuery) {
     const limit = parseLimitParam(rawQuery.limit);
     if (limit === null) {
@@ -83,6 +92,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Validate the opaque pagination token when one is present.
   if ("cursor" in rawQuery) {
     const cursor = parseStringParam(rawQuery.cursor, false);
     if (cursor === null) {
@@ -97,6 +107,7 @@ export function parseLogQueryRequest(query: unknown): LogQueryValidationResult {
     }
   }
 
+  // Support attr.* filters for structured attribute equality matches.
   for (const [key, rawValue] of Object.entries(rawQuery)) {
     if (!key.startsWith("attr.")) {
       continue;

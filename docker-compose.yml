@@ -1,8 +1,11 @@
 services:
   db:
+    # PostgreSQL stores all logs and aggregate data for the service.
     image: postgres:16-alpine
+    # Keep the database within the container limits used by the benchmark.
     cpus: "1.0"
     mem_limit: 1g
+    # Tune PostgreSQL for the available memory and the write-heavy workload.
     command: postgres -c shared_buffers=256MB -c effective_cache_size=768MB -c work_mem=8MB -c max_wal_size=2GB -c checkpoint_timeout=1800 -c wal_compression=zstd -c synchronous_commit=off
     environment:
       POSTGRES_DB: app
@@ -11,22 +14,28 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
+      # Wait for PostgreSQL to accept connections before starting the app.
       test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   app:
+    # Build the application image from the local Dockerfile.
     build:
       context: .
       dockerfile: Dockerfile
+    # Keep the app container within the resource cap from the SRS.
     cpus: "0.5"
     mem_limit: 256m
     environment:
+      # The app talks to the PostgreSQL service on the internal Docker network.
       DATABASE_URL: postgresql://postgres:postgres@db:5432/app
+      # The API listens on the contractually required port.
       PORT: 8080
     ports:
       - "8080:8080"
     depends_on:
       db:
+        # Do not start the app until the database healthcheck passes.
         condition: service_healthy

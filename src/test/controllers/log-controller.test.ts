@@ -10,6 +10,7 @@ import type { ILogService } from "../../services/interfaces/log-service.js";
 
 describe("LogController", () => {
   it("returns the ingest result from the log service", async () => {
+    // The controller should act as a thin pass-through for successful ingest.
     const requestBody: IngestRequest = {
       entries: [
         {
@@ -53,6 +54,7 @@ describe("LogController", () => {
   });
 
   it("accepts a raw array ingest body and normalizes it into an entries payload", async () => {
+    // Compatibility with array bodies protects older or looser clients.
     const requestBody = [
       {
         timestamp: "2026-08-03T10:00:00.000Z",
@@ -96,6 +98,7 @@ describe("LogController", () => {
   });
 
   it("throws when the request body does not match the expected top-level shape", async () => {
+    // Invalid top-level bodies should fail before they reach the service layer.
     const logService: ILogService = {
       ingestLogs: vi.fn(),
       queryLogs: vi.fn(),
@@ -110,6 +113,7 @@ describe("LogController", () => {
   });
 
   it("propagates service errors when every entry is rejected", async () => {
+    // The controller should not hide a batch-level rejection from the service.
     const logService: ILogService = {
       ingestLogs: vi.fn().mockRejectedValue(
         new AllEntriesRejectedError({
@@ -153,6 +157,7 @@ describe("LogController", () => {
   });
 
   it("returns query results from the log service", async () => {
+    // Query handling should be a simple delegation path.
     const queryResponse: LogQueryResponse = {
       logs: [
         {
@@ -202,6 +207,7 @@ describe("LogController", () => {
   });
 
   it("returns aggregate results from the log service", async () => {
+    // Aggregate handling should also remain a thin controller wrapper.
     const aggregateResponse: LogAggregateResponse = {
       buckets: [
         {

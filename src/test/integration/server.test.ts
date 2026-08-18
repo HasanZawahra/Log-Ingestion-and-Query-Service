@@ -3,6 +3,7 @@ import { getPort } from "../../server.js";
 
 describe("getPort", () => {
   it("defaults to 8080 when PORT is not set", () => {
+    // The server should honor the contract default when no override is present.
     const originalPort = process.env.PORT;
     delete process.env.PORT;
 

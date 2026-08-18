@@ -23,6 +23,7 @@ function createEntry(index: number): IngestLogEntry {
 
 describe("IngestBatcher", () => {
   beforeEach(() => {
+    // Reset the database mock before each concurrency scenario.
     mockConnect.mockReset();
     mockQuery.mockReset();
     mockRelease.mockReset();
@@ -52,6 +53,7 @@ describe("IngestBatcher", () => {
   }
 
   it("coalesces concurrent saves into one flush", async () => {
+    // Two saves arriving together should share a single transaction.
     const batcher = await createBatcher();
 
     const first = batcher.save([createEntry(0)]);

@@ -20,6 +20,7 @@ function createEntry(index: number): IngestLogEntry {
 
 describe("buildLogsInsert", () => {
   it("builds one parameterized multi-row insert query", () => {
+    // Multiple entries should become one insert statement with placeholder pairs.
     const entries: IngestLogEntry[] = [
       {
         timestamp: "2026-08-03T10:00:00.000Z",
@@ -57,12 +58,14 @@ describe("buildLogsInsert", () => {
   });
 
   it("rejects empty inserts", () => {
+    // A bulk insert builder should not accept an empty batch.
     expect(() => buildLogsInsert([])).toThrow(EmptyBulkInsertError);
   });
 });
 
 describe("groupEntriesForAggregation", () => {
   it("groups entries by minute bucket, service, and level", () => {
+    // Different rows in the same minute/service/level should collapse together.
     const groups = groupEntriesForAggregation([
       { timestamp: "2026-08-03T10:00:59.000Z", level: "info", service: "checkout", message: "a" },
       { timestamp: "2026-08-03T10:01:01.000Z", level: "info", service: "checkout", message: "b" },
@@ -82,6 +85,7 @@ describe("groupEntriesForAggregation", () => {
 
 describe("buildAggregateUpsert", () => {
   it("builds an upsert query with the grouped counts", () => {
+    // Upserting the rollup table keeps minute counts in sync with the raw log table.
     const query = buildAggregateUpsert([
       { bucketStart: "2026-08-03T10:00:00.000Z", service: "checkout", level: "info", count: 3 },
       { bucketStart: "2026-08-03T10:00:00.000Z", service: "billing", level: "error", count: 1 },
@@ -108,12 +112,14 @@ describe("buildAggregateUpsert", () => {
   });
 
   it("rejects empty groups", () => {
+    // Empty group lists should fail loudly for the same reason as empty inserts.
     expect(() => buildAggregateUpsert([])).toThrow(EmptyBulkInsertError);
   });
 });
 
 describe("chunkLogEntries", () => {
   it("chunks entries using the configured insert size", () => {
+    // Large batches should be split so each SQL statement stays bounded.
     const entries = Array.from({ length: MAX_LOGS_PER_INSERT + 1 }, (_, index) =>
       createEntry(index)
     );

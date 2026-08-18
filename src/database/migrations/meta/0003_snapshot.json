@@ -97,11 +97,7 @@
       "compositePrimaryKeys": {
         "log_minute_aggregates_bucket_start_service_level_pk": {
           "name": "log_minute_aggregates_bucket_start_service_level_pk",
-          "columns": [
-            "bucket_start",
-            "service",
-            "level"
-          ]
+          "columns": ["bucket_start", "service", "level"]
         }
       },
       "uniqueConstraints": {},
@@ -234,12 +230,7 @@
     "public.log_level": {
       "name": "log_level",
       "schema": "public",
-      "values": [
-        "debug",
-        "info",
-        "warn",
-        "error"
-      ]
+      "values": ["debug", "info", "warn", "error"]
     }
   },
   "schemas": {},

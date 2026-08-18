@@ -9,6 +9,7 @@ import { applicationErrorHandler, jsonParseErrorHandler } from "../../utils/midd
 
 describe("GET /health", () => {
   it("returns ok when the database is healthy", async () => {
+    // A healthy backend should expose the readiness payload.
     const healthService: IHealthService = {
       checkHealth: vi.fn().mockResolvedValueOnce(true),
     };
@@ -41,6 +42,7 @@ describe("GET /health", () => {
   });
 
   it("returns unavailable when the database is not healthy", async () => {
+    // Unhealthy startup should surface as a 503.
     const healthService: IHealthService = {
       checkHealth: vi.fn().mockResolvedValueOnce(false),
     };
@@ -56,6 +58,7 @@ describe("GET /health", () => {
 
 describe("POST /logs", () => {
   it("converts malformed JSON into a custom application error", () => {
+    // Parse failures should become the app's malformed JSON error.
     const next = vi.fn();
     const error = new SyntaxError("Unexpected end of JSON input") as SyntaxError & { body: string };
     error.body = '{"entries":[';
@@ -66,6 +69,7 @@ describe("POST /logs", () => {
   });
 
   it("serializes application errors into responses", async () => {
+    // Shared middleware should format AppError instances consistently.
     const response = await new Promise<{ status: number; body: { error: string } }>((resolve) => {
       const res = {
         statusCode: 200,
@@ -94,6 +98,7 @@ describe("POST /logs", () => {
   });
 
   it("serializes cursor errors into responses", async () => {
+    // Cursor errors should also round-trip through the shared middleware.
     const response = await new Promise<{ status: number; body: { error: string } }>((resolve) => {
       const res = {
         statusCode: 200,
@@ -122,6 +127,7 @@ describe("POST /logs", () => {
   });
 
   it("serializes query validation errors into responses", async () => {
+    // Query validation failures should preserve the validation issues list.
     const response = await new Promise<{
       status: number;
       body: { error: string; issues: string[] };
@@ -154,6 +160,7 @@ describe("POST /logs", () => {
   });
 
   it("serializes aggregate query validation errors into responses", async () => {
+    // Aggregate validation failures should use the same response shape as log queries.
     const response = await new Promise<{
       status: number;
       body: { error: string; issues: string[] };

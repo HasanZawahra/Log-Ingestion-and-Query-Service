@@ -1,14 +1,19 @@
+// Retention settings are supplied through environment variables.
 export const LOG_RETENTION_DAYS_ENV_VAR = "LOG_RETENTION_DAYS";
 export const RETENTION_INTERVAL_MINUTES_ENV_VAR = "RETENTION_INTERVAL_MINUTES";
 export const RETENTION_DELETE_BATCH_SIZE_ENV_VAR = "RETENTION_DELETE_BATCH_SIZE";
 
+// Default to 30 days of history when no override is provided.
 export const DEFAULT_LOG_RETENTION_DAYS = 30;
+// The cleanup worker runs hourly by default.
 export const DEFAULT_RETENTION_INTERVAL_MINUTES = 60;
+// Retention deletes happen in bounded batches to avoid long locks.
 export const DEFAULT_RETENTION_DELETE_BATCH_SIZE = 5000;
 
 // Cleanup starts after the first interval so startup stays focused on serving traffic.
 export const RETENTION_RUNS_ON_STARTUP = false;
 
+// Retention configuration must stay positive and non-zero.
 export const RETENTION_MIN_DAYS = 1;
 export const RETENTION_MIN_INTERVAL_MINUTES = 1;
 export const RETENTION_MIN_DELETE_BATCH_SIZE = 1;

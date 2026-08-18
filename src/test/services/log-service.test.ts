@@ -10,6 +10,7 @@ import type { ILogRepository } from "../../repositories/interfaces/log-repositor
 
 describe("LogService", () => {
   it("validates and persists only valid entries", async () => {
+    // One good row and one bad row prove the batch is partially accepted.
     const saveLogs = vi.fn().mockResolvedValue(undefined);
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
@@ -39,6 +40,7 @@ describe("LogService", () => {
 
     const response = await service.ingestLogs(request);
 
+    // Only the valid entry should reach the repository.
     expect(saveLogs).toHaveBeenCalledWith([
       {
         timestamp: request.entries[0]?.timestamp,
@@ -53,6 +55,7 @@ describe("LogService", () => {
   });
 
   it("throws when every entry is rejected", async () => {
+    // A fully invalid batch should fail with the batch-level error.
     const saveLogs = vi.fn();
     const repository: ILogRepository = {
       ensureSchemaReady: vi.fn(),
@@ -81,6 +84,7 @@ describe("LogService", () => {
   });
 
   it("validates query parameters before querying logs", async () => {
+    // Invalid filters should be rejected before the repository sees them.
     const queryLogs = vi.fn().mockResolvedValue({
       logs: [],
       next_cursor: null,
@@ -105,6 +109,7 @@ describe("LogService", () => {
   });
 
   it("delegates valid log queries to the repository", async () => {
+    // When validation passes, the service should pass normalized filters through.
     const response: LogQueryResponse = {
       logs: [
         {
@@ -141,6 +146,7 @@ describe("LogService", () => {
   });
 
   it("validates aggregate query parameters before querying aggregates", async () => {
+    // Aggregate requests get the same validation gate as raw log queries.
     const queryLogAggregates = vi.fn().mockResolvedValue({
       buckets: [],
     } satisfies LogAggregateResponse);
@@ -166,6 +172,7 @@ describe("LogService", () => {
   });
 
   it("delegates valid aggregate queries to the repository", async () => {
+    // The service should preserve the parsed aggregate shape exactly.
     const response: LogAggregateResponse = {
       buckets: [
         {

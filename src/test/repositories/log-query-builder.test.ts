@@ -7,6 +7,7 @@ import { encodeLogCursor } from "../../utils/log-cursor.js";
 
 describe("buildLogQuery", () => {
   it("builds a service-only query", () => {
+    // The simplest filter should still use a parameterized WHERE clause.
     const query = buildLogQuery({
       service: "checkout",
     });
@@ -17,6 +18,7 @@ describe("buildLogQuery", () => {
   });
 
   it("builds a level-only query", () => {
+    // Level filters should be translated without extra clauses.
     const query = buildLogQuery({
       level: "error",
     });
@@ -27,6 +29,7 @@ describe("buildLogQuery", () => {
   });
 
   it("builds a time-range query", () => {
+    // Since/until should map to inclusive/exclusive timestamp bounds.
     const query = buildLogQuery({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -42,6 +45,7 @@ describe("buildLogQuery", () => {
   });
 
   it("builds an attribute-filter query", () => {
+    // Attribute equality checks rely on the compact attribute encoder.
     const query = buildLogQuery({
       attributeFilters: {
         region: "eu-west",
@@ -54,6 +58,7 @@ describe("buildLogQuery", () => {
   });
 
   it("builds a message-search query", () => {
+    // Message search should become a case-insensitive substring match.
     const query = buildLogQuery({
       q: "payment failed",
     });
@@ -64,6 +69,7 @@ describe("buildLogQuery", () => {
   });
 
   it("builds a cursor query clause", () => {
+    // Cursor pagination should translate into a tuple comparison.
     const cursor = encodeLogCursor({
       timestamp: "2026-08-03T10:30:00.000Z",
       id: 44,
@@ -79,6 +85,7 @@ describe("buildLogQuery", () => {
   });
 
   it("builds a parameterized query with all supported filters", () => {
+    // This exercise confirms placeholder ordering across every supported filter.
     const cursor = encodeLogCursor({
       timestamp: "2026-08-03T10:30:00.000Z",
       id: 44,
@@ -121,6 +128,7 @@ describe("buildLogQuery", () => {
   });
 
   it("uses the default query limit when no limit is provided", () => {
+    // The builder should fall back to the contract default page size.
     const query = buildLogQuery({});
 
     expect(query.text).toContain("LIMIT $1");
@@ -128,6 +136,7 @@ describe("buildLogQuery", () => {
   });
 
   it("throws a custom application error when the cursor is invalid", () => {
+    // Bad cursors should be rejected before any SQL reaches Postgres.
     expect(() =>
       buildLogQuery({
         cursor: "not-a-cursor",

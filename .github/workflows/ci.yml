@@ -1,16 +1,19 @@
 name: CI
 
 on:
+  # Run on pushes to the main branch and for every pull request.
   push:
     branches: [main]
   pull_request:
 
 jobs:
   build-and-test:
+    # Use the standard GitHub Actions Ubuntu runner for parity with CI.
     runs-on: ubuntu-latest
 
     services:
       postgres:
+        # Start a disposable PostgreSQL 16 instance for migrations and tests.
         image: postgres:16-alpine
         env:
           POSTGRES_DB: app
@@ -19,22 +22,31 @@ jobs:
         ports:
           - 5432:5432
         options: >-
+          # Wait until PostgreSQL is actually ready before running the job.
           --health-cmd="pg_isready -U postgres -d app"
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
 
     steps:
+      # Check out the repository contents for the workflow job.
       - uses: actions/checkout@v4
 
+      # Install the Node toolchain with npm cache support.
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
 
+      # Keep dependency install output focused on actual failures.
       - run: npm config set fund false
+      # Install dependencies without the extra audit/funding noise.
       - run: npm install --no-audit --no-fund
+      # Apply the production migration set before running the app build.
       - run: DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app npm run migrate:prod
+      # Type-check and compile the application code.
       - run: npm run build
+      # Run the tests with a mocked database URL for unit-level coverage.
       - run: DATABASE_URL=postgresql://mock_connection npm test
+      # Finish by enforcing lint rules in CI.
       - run: npm run lint
