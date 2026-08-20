@@ -15,6 +15,7 @@ A compact log ingestion and query microservice built with TypeScript, Express, a
 - [Retention Strategy](#retention-strategy)
 - [Load Test Methodology](#load-test-methodology)
 - [Measured Performance Results](#measured-performance-results)
+- [Benchmark Test Details](#benchmark-test-details)
 - [Known Limitations](#known-limitations)
 - [Optional Features and Configuration](#optional-features-and-configuration)
 
@@ -421,7 +422,7 @@ This generator was used to test the same repository state multiple times. Scores
 
 ### 3. Local CLI Benchmark
 
-The locally provided CLI test tool was used for the most detailed evaluation. This tool produces highly precise and repeatable results across multiple runs. The CLI tool also generates a detailed JSON report found at `documentation/docs/benchmark-report.json`. The results shown below are consistent with those in the JSON report.
+The locally provided CLI test tool was used for the most detailed evaluation. This tool produces highly precise and repeatable results across multiple runs. The CLI tool also generates a detailed JSON report found at `documentation/docs/cli-benchmark-report.json`. The results shown below are consistent with those in the JSON report.
 
 ![Local CLI Results](documentation/images/local-cli-results.png)
 
@@ -454,6 +455,137 @@ The breakpoint scenario exceeds the service's sustainable throughput, resulting 
 
 ---
 
+## Benchmark Test Details
+
+### Test Environment
+
+| Component | Specification |
+|-----------|---------------|
+| Operating system | Docker Desktop (macOS) |
+| Container runtime | Docker Compose |
+| Load generator | Grafana k6 v0.54.0 (isolated container) |
+| Generator resources | 4 CPUs, 1 GB RAM |
+| Application container | 0.5 CPU, 256 MB RAM |
+| PostgreSQL container | 1.0 CPU, 1 GB RAM |
+| PostgreSQL version | 16 (Alpine) |
+| Node.js version | 22 |
+
+### Dataset Size
+
+Each benchmark scenario creates its own isolated database. The total number of logs ingested per scenario:
+
+| Scenario | Logs Ingested |
+|----------|---------------|
+| Load | 1,798,104 |
+| Stress | 2,750,484 |
+| Spike | 1,472,262 |
+| Breakpoint | 2,209,086 |
+
+The database starts empty for each scenario. Logs are ingested continuously throughout the test duration, and queries are executed concurrently against the growing dataset.
+
+### Batch Size
+
+The ingestion path batches entries before writing to PostgreSQL. The maximum batch size is 4,000 entries per insert statement. Multiple concurrent flushes (up to 5) are allowed to absorb HTTP-level concurrency without creating unlimited database pressure.
+
+### Ingestion Rate
+
+| Scenario | Target Rate | Achieved Rate | Notes |
+|----------|-------------|---------------|-------|
+| Load | 15,000 logs/sec | 14,984 logs/sec | Steady state throughout |
+| Stress | 15,000 -> 22,500 logs/sec | 18,337 logs/sec | Ramped across 3 stages |
+| Spike | 7,500 -> 30,000 -> 7,500 logs/sec | 14,723 logs/sec | Spike stage exceeded target |
+| Breakpoint | 15,000 -> 22,500 logs/sec | 18,409 logs/sec | Sustained above sustainable limit |
+
+All scenarios completed with zero rejected entries and zero HTTP errors.
+
+### Query Rate
+
+| Scenario | HTTP Requests/sec | Query Type |
+|----------|-------------------|------------|
+| Load | 501 | Concurrent reads during ingestion |
+| Stress | 285 | Concurrent reads during high ingestion |
+| Spike | 469 | Concurrent reads during burst |
+| Breakpoint | 604 | Concurrent reads at maximum load |
+
+### Query Latency Percentiles
+
+**Ingestion latency:**
+
+| Scenario | p50 | p90 | p95 |
+|----------|-----|-----|-----|
+| Load | 1.87ms | 2.61ms | 5.52ms |
+| Stress | 3.50ms | 109.09ms | 148.62ms |
+| Spike | 3.22ms | 76.15ms | 113.14ms |
+| Breakpoint | 13.33ms | 147.94ms | 170.00ms |
+
+**Read latency:**
+
+| Scenario | p50 | p90 | p95 |
+|----------|-----|-----|-----|
+| Load | 8.68ms | 9.48ms | 10.73ms |
+| Stress | 12.35ms | 84.44ms | 91.65ms |
+| Spike | 9.54ms | 57.40ms | 70.75ms |
+| Breakpoint | 16.06ms | 87.58ms | 92.37ms |
+
+**Aggregate latency:**
+
+| Scenario | p50 | p90 | p95 |
+|----------|-----|-----|-----|
+| Load | 1.06ms | 1.88ms | 2.54ms |
+| Stress | 1.20ms | 52.65ms | 55.57ms |
+| Spike | 1.50ms | 6.15ms | 11.30ms |
+| Breakpoint | 3.10ms | 68.37ms | 72.06ms |
+
+### Resource Usage
+
+**Application container:**
+
+| Scenario | CPU Usage | Memory |
+|----------|-----------|--------|
+| Load | 50.2% | 34.0 MB |
+| Stress | 54.8% | 36.0 MB |
+| Spike | 51.5% | 37.2 MB |
+| Breakpoint | 49.4% | 36.5 MB |
+
+**PostgreSQL container:**
+
+| Scenario | CPU Usage | Memory |
+|----------|-----------|--------|
+| Load | 92.2% | 326.4 MB |
+| Stress | 112.8% | 752.2 MB |
+| Spike | 102.3% | 773.9 MB |
+| Breakpoint | 105.4% | 979.7 MB |
+
+The application stays well within its 256 MB memory limit across all scenarios. PostgreSQL memory usage scales with the dataset size and query load, approaching the 1 GB container limit in the breakpoint scenario.
+
+### Bottlenecks Discovered
+
+1. **PostgreSQL CPU saturation.** Under sustained ingestion above 15,000 logs/sec, PostgreSQL becomes the primary bottleneck. The database CPU exceeds 100% (multi-core) in stress and breakpoint scenarios, causing ingestion latency to spike.
+
+2. **Aggregate query latency under extreme load.** The breakpoint scenario pushes aggregate p95 to 72ms, well above the sub-5ms latency seen in the load scenario. This correlates with PostgreSQL CPU saturation rather than application-side constraints.
+
+3. **Eventual consistency under high throughput.** Read-after-write consistency drops to 49.4% in the breakpoint scenario. The service continues accepting logs without errors, but the database cannot serve freshly ingested data immediately due to write pressure.
+
+4. **Connection pool contention.** The 20-connection pool becomes a limiting factor when ingestion and query traffic compete for database connections at high throughput.
+
+### Optimizations Applied
+
+1. **Batched ingestion.** Grouping entries into bulk insert statements (up to 4,000 rows) reduces per-row overhead and database round trips. The batcher queues entries from concurrent HTTP requests and flushes them together.
+
+2. **Synchronous aggregate upserts.** Minute-level rollups are computed and persisted in the same transaction as raw log inserts. This eliminates the need for a separate aggregation cycle and ensures aggregates are immediately consistent after commit.
+
+3. **Limited index set.** Only three indexes on the raw log table cover the required query patterns. This avoids write amplification that would slow ingestion. Additional indexes for attribute filtering were removed after testing showed the cost outweighed the benefit.
+
+4. **Keyset pagination.** Cursor-based pagination using `(timestamp, id)` tuples avoids the performance degradation of offset-based pagination on a table that is actively receiving new rows.
+
+5. **Bounded retention deletes.** The retention worker selects and deletes expired rows in bounded batches using `ctid`, preventing long-running delete operations from holding locks and disrupting ingestion.
+
+6. **Connection pooling.** A shared pg Pool with a configurable maximum (20 connections) prevents the application from overwhelming PostgreSQL with concurrent connections.
+
+7. **Write-optimized PostgreSQL configuration.** The database container uses `synchronous_commit=off`, `wal_compression=zstd`, and tuned `shared_buffers` and `max_wal_size` to absorb the write-heavy workload.
+
+---
+
 ## Known Limitations
 
 1. **Aggregate table is not retained.** The `log_minute_aggregates` table is maintained during ingestion, but expired aggregate rows are not cleaned up by the retention worker. Over a long-running deployment, this table will grow unboundedly.
@@ -464,9 +596,7 @@ The breakpoint scenario exceeds the service's sustainable throughput, resulting 
 
 4. **Single-database deployment.** The service connects to a single PostgreSQL instance. There is no built-in support for read replicas, sharding, or horizontal scaling.
 
-5. **No TLS termination.** The service listens on plain HTTP. TLS should be handled by a reverse proxy or load balancer in production.
-
-6. **Breakpoint throughput ceiling.** The service sustains approximately 15,000-20,000 logs per second within the resource constraints (0.5 CPU, 256MB memory). Beyond this range, latencies increase significantly.
+5. **Breakpoint throughput ceiling.** The service sustains approximately 15,000-20,000 logs per second within the resource constraints (0.5 CPU, 256MB memory). Beyond this range, latencies increase significantly.
 
 ---
 
