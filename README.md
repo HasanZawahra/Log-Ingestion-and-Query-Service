@@ -417,6 +417,8 @@ The generator accepts a GitHub repository URL, clones the repository, builds and
 
 This generator was used to test the same repository state multiple times. Scores ranged from 93.5 to 95.9, with most completed runs falling in the 93.5 to 94.5 range. The variance is lower than the public portal because the local environment has consistent resource allocation and no shared infrastructure contention. A few runs failed or scored lower due to transient Docker build issues, which are visible in the submissions history.
 
+![Self-Hosted Generator Results](documentation/images/self-made-generator-results.png)
+
 ### 3. Local CLI Benchmark
 
 The locally provided CLI test tool was used for the most detailed evaluation. This tool produces highly precise and repeatable results across multiple runs. The CLI tool also generates a detailed JSON report found at `documentation/docs/benchmark-report.json`. The results shown below are consistent with those in the JSON report.
