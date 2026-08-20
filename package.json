@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "_comment": "Scripts are organized for local development, CI, and production startup.",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
   "scripts": {
     "test": "vitest run",
     "_comment_scripts": "build compiles TypeScript, migrate:prod applies migrations in Docker, and lint/format keep the repo clean.",
@@ -30,12 +26,10 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
     "@types/pg": "^8.20.3",
-    "@types/supertest": "^7.2.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.6",
-    "supertest": "^7.2.2",
     "tsx": "^4.23.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"

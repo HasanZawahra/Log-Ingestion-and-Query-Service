@@ -54,36 +54,3 @@ export const logs = pgTable(
     ),
   })
 );
-
-// Maintain a minute-level rollup table for faster aggregate reads.
-export const logMinuteAggregates = pgTable(
-  LOG_MINUTE_AGGREGATES_TABLE_NAME,
-  {
-    // Start of the minute bucket in UTC.
-    bucketStart: timestamp("bucket_start", { withTimezone: true }).notNull(),
-    // Service dimension for the rollup row.
-    service: varchar("service", { length: 255 }).notNull(),
-    // Level dimension for the rollup row.
-    level: logLevel("level").notNull(),
-    // Count of raw rows represented by the rollup.
-    count: bigint("count", { mode: "number" }).notNull(),
-  },
-  (table) => ({
-    // One rollup row exists per bucket, service, and level.
-    pk: primaryKey({ columns: [table.bucketStart, table.service, table.level] }),
-    // Support service-filtered rollup reads.
-    serviceBucketStartIdx: index("log_minute_aggregates_service_bucket_start_idx").on(
-      table.service,
-      table.bucketStart
-    ),
-    // Support level-filtered rollup reads.
-    levelBucketStartIdx: index("log_minute_aggregates_level_bucket_start_idx").on(
-      table.level,
-      table.bucketStart
-    ),
-  })
-);
-
-// Export the inferred row types for repository code and tests.
-export type LogRecord = typeof logs.$inferSelect;
-export type NewLogRecord = typeof logs.$inferInsert;

@@ -12,8 +12,6 @@
     "types": ["node"],
     // Keep the compiler strict so the codebase stays reliable.
     "strict": true,
-    // Preserve source maps for debugging compiled output.
-    "sourceMap": true,
     // Compile against the modern standard library set.
     "lib": ["ESNext"],
     // Match NodeNext module resolution rules.
@@ -22,8 +20,6 @@
     "forceConsistentCasingInFileNames": true,
     // Make array and object indexing safer.
     "noUncheckedIndexedAccess": true,
-    // Treat optional properties precisely instead of widening them.
-    "exactOptionalPropertyTypes": true,
     // Allow importing JSON configuration files when needed.
     "resolveJsonModule": true,
     // Skip type-checking of dependencies for faster builds.

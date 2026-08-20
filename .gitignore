@@ -1,5 +1,4 @@
 .docs
-.nvmrc
 node_modules
 dist
 .env
