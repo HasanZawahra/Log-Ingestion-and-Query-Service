@@ -17,7 +17,7 @@ The design therefore favors a few practical principles:
 
 ## Requirements Acknowledgement
 
-The implementation is built around the requirements in `docs/software-reqs.pdf`.
+The implementation is built around the requirements in `documentation/docs/software-reqs.pdf`.
 
 The required contract includes:
 
