@@ -11,6 +11,7 @@ interface ExpressRouteLayer {
 
 describe("/logs routes", () => {
   it("registers the log routes on the Express app", () => {
+    // Route registration should match the contract exactly.
     const router = (app as unknown as { router: { stack: ExpressRouteLayer[] } }).router;
 
     const getLogsRoute = router.stack.find(

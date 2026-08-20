@@ -3,6 +3,7 @@ import { buildLogAggregateQuery } from "../../repositories/postgres/builders/log
 
 describe("buildLogAggregateQuery", () => {
   it("builds a grouped aggregation query with all filters", () => {
+    // When filters are present, the builder should aggregate from raw logs.
     const query = buildLogAggregateQuery({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -38,6 +39,7 @@ describe("buildLogAggregateQuery", () => {
   });
 
   it("builds a raw aggregation query over the logs table when only q is present", () => {
+    // Message search requires scanning the base logs table instead of the rollup table.
     const query = buildLogAggregateQuery({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -56,6 +58,7 @@ describe("buildLogAggregateQuery", () => {
   });
 
   it("builds a rollup query over the minute aggregates with a null group when no filters are present", () => {
+    // The no-filter path should use the precomputed minute rollup table.
     const query = buildLogAggregateQuery({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -72,6 +75,7 @@ describe("buildLogAggregateQuery", () => {
   });
 
   it("rolls up minute buckets when a larger bucket is requested without filters", () => {
+    // Larger buckets should be derived from the minute rollup table, not raw logs.
     const query = buildLogAggregateQuery({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",

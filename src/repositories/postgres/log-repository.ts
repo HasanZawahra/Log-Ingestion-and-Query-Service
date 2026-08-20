@@ -24,45 +24,54 @@ export class PostgresLogRepository implements ILogRepository {
   ) {}
 
   async ensureSchemaReady(): Promise<void> {
+    // Health checks probe the schema before the service starts serving traffic.
     const client = await pool.connect();
 
     try {
       const { rows } = await client.query(LOGS_TABLE_EXISTENCE_QUERY);
 
+      // The logs table must be present for the service to be usable.
       const tableExists = rows[0]?.table_name === "logs";
 
       if (!tableExists) {
         throw new MissingLogsTableError();
       }
     } finally {
+      // Release the connection immediately after the probe.
       client.release();
     }
   }
 
   async saveLogs(entries: IngestLogEntry[]): Promise<void> {
     if (entries.length === 0) {
+      // Nothing to save means the caller can return immediately.
       return;
     }
 
+    // Queue the entries for batched persistence.
     await this.ingestBatcher.save(entries);
   }
 
   async flushPendingLogs(): Promise<void> {
+    // Drain the ingest queue on demand.
     await this.ingestBatcher.flushPending();
   }
 
   async closeIngestBatcher(): Promise<void> {
+    // Flush any remaining work before shutting down the batcher.
     await this.ingestBatcher.flushPending();
     this.ingestBatcher.close();
   }
 
   async queryLogs(request: LogQueryRequest): Promise<LogQueryResponse> {
+    // Fetch one extra row so we can tell whether another page exists.
     const pageSize = request.limit ?? DEFAULT_LOG_QUERY_LIMIT;
     const query = this.logQueryBuilder.buildLogQuery({
       ...request,
       limit: pageSize + 1,
     });
 
+    // Run the generated SQL against PostgreSQL.
     const client = await pool.connect();
 
     try {
@@ -77,6 +86,7 @@ export class PostgresLogRepository implements ILogRepository {
         next_cursor:
           hasNextPage && lastRow
             ? encodeLogCursor({
+                // Preserve the database timestamp and id for deterministic paging.
                 timestamp:
                   (lastRow.cursor_timestamp as string | undefined) ??
                   normalizeTimestamp(lastRow.timestamp),
@@ -85,12 +95,15 @@ export class PostgresLogRepository implements ILogRepository {
             : null,
       };
     } finally {
+      // Release the query connection once the page has been read.
       client.release();
     }
   }
 
   async queryLogAggregates(request: LogAggregateRequest): Promise<LogAggregateResponse> {
+    // Build the aggregate SQL using the dedicated query builder.
     const query = this.logAggregateQueryBuilder.buildLogAggregateQuery(request);
+    // Aggregate reads use the shared read path as well.
     const client = await pool.connect();
 
     try {
@@ -100,12 +113,14 @@ export class PostgresLogRepository implements ILogRepository {
         buckets: rows.map(mapLogAggregateBucket),
       };
     } finally {
+      // Release the connection immediately after the aggregate query.
       client.release();
     }
   }
 }
 
 function mapLogQueryEntry(row: Record<string, unknown>): LogQueryEntry {
+  // Convert the raw database row into the public query response shape.
   return {
     id: String(row.id),
     timestamp: normalizeTimestamp(row.timestamp),
@@ -118,15 +133,18 @@ function mapLogQueryEntry(row: Record<string, unknown>): LogQueryEntry {
 
 function normalizeTimestamp(value: unknown): string {
   if (value instanceof Date) {
+    // Database timestamps come back as Date objects in some query modes.
     return value.toISOString();
   }
 
+  // Coerce strings and other date-like values into canonical UTC output.
   return new Date(String(value)).toISOString();
 }
 
 function mapLogAggregateBucket(
   row: Record<string, unknown>
 ): LogAggregateResponse["buckets"][number] {
+  // Convert each aggregate row into the response bucket shape.
   return {
     start: normalizeTimestamp(row.start),
     group: row.group === undefined || row.group === null ? null : String(row.group),

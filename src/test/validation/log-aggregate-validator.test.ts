@@ -3,6 +3,7 @@ import { parseLogAggregateRequest } from "../../validation/log-aggregate-validat
 
 describe("log aggregate validation", () => {
   it("parses a valid aggregate query", () => {
+    // This request covers the full valid aggregate shape, including grouping and attributes.
     const result = parseLogAggregateRequest({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -30,6 +31,7 @@ describe("log aggregate validation", () => {
   });
 
   it("rejects invalid timestamps", () => {
+    // Both sides of the time window should report their own problems.
     const result = parseLogAggregateRequest({
       since: "not-a-date",
       until: "still-not-a-date",
@@ -44,6 +46,7 @@ describe("log aggregate validation", () => {
   });
 
   it("rejects unsupported bucket values", () => {
+    // Only the contractually supported buckets are allowed.
     const result = parseLogAggregateRequest({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -55,6 +58,7 @@ describe("log aggregate validation", () => {
   });
 
   it("rejects unsupported grouping values", () => {
+    // group_by should map only to the permitted dimensions.
     const result = parseLogAggregateRequest({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",
@@ -67,6 +71,7 @@ describe("log aggregate validation", () => {
   });
 
   it("rejects until values that are not greater than since", () => {
+    // The upper bound must remain exclusive and after the lower bound.
     const result = parseLogAggregateRequest({
       since: "2026-08-03T11:00:00.000Z",
       until: "2026-08-03T10:00:00.000Z",
@@ -78,6 +83,7 @@ describe("log aggregate validation", () => {
   });
 
   it("rejects missing required fields", () => {
+    // Missing since/until should fail fast even if bucket is present.
     const result = parseLogAggregateRequest({
       bucket: "1d",
     });
@@ -90,6 +96,7 @@ describe("log aggregate validation", () => {
   });
 
   it("ignores null-like optional aggregate filters", () => {
+    // Optional filters should disappear cleanly when they are blank-ish.
     const result = parseLogAggregateRequest({
       since: "2026-08-03T10:00:00.000Z",
       until: "2026-08-03T11:00:00.000Z",

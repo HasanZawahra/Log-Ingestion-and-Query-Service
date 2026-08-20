@@ -13,6 +13,7 @@ export class RetentionService implements IRetentionService {
   ) {}
 
   async runRetention(now: Date = new Date()): Promise<RetentionExecutionResult> {
+    // Convert the configured retention window into an absolute cutoff.
     const { logRetentionDays, retentionDeleteBatchSize } = this.retentionConfig;
     const cutoff = calculateRetentionCutoff(now, logRetentionDays);
 
@@ -20,6 +21,7 @@ export class RetentionService implements IRetentionService {
     let batches = 0;
 
     while (true) {
+      // Delete expired rows in bounded chunks until the table is drained.
       const batchDeleted = await this.retentionRepository.deleteExpiredLogs(
         cutoff,
         retentionDeleteBatchSize
@@ -29,10 +31,12 @@ export class RetentionService implements IRetentionService {
       deleted += batchDeleted;
 
       if (batchDeleted < retentionDeleteBatchSize) {
+        // A short batch means there is nothing left to remove.
         break;
       }
     }
 
+    // Return a compact summary for logging and tests.
     return {
       cutoff: cutoff.toISOString(),
       deleted,

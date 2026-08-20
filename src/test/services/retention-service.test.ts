@@ -11,6 +11,7 @@ describe("RetentionService", () => {
   });
 
   it("returns immediately when there are no expired logs", async () => {
+    // A zero-row delete should still run one bounded cleanup pass.
     process.env.LOG_RETENTION_DAYS = "30";
     process.env.RETENTION_DELETE_BATCH_SIZE = "5000";
     const deleteExpiredLogs = vi.fn().mockResolvedValue(0);
@@ -31,6 +32,7 @@ describe("RetentionService", () => {
   });
 
   it("deletes one batch and stops when the batch is not full", async () => {
+    // A partial batch means the delete loop can stop after one round.
     process.env.LOG_RETENTION_DAYS = "30";
     process.env.RETENTION_DELETE_BATCH_SIZE = "5000";
     const deleteExpiredLogs = vi.fn().mockResolvedValue(128);
@@ -47,6 +49,7 @@ describe("RetentionService", () => {
   });
 
   it("continues deleting multiple batches until the final batch is smaller", async () => {
+    // Full batches should keep looping until the final batch shrinks.
     process.env.LOG_RETENTION_DAYS = "30";
     process.env.RETENTION_DELETE_BATCH_SIZE = "5000";
     const deleteExpiredLogs = vi
@@ -67,6 +70,7 @@ describe("RetentionService", () => {
   });
 
   it("propagates repository failures", async () => {
+    // Errors from the repository should bubble out instead of being swallowed.
     process.env.LOG_RETENTION_DAYS = "30";
     process.env.RETENTION_DELETE_BATCH_SIZE = "5000";
     const deleteExpiredLogs = vi.fn().mockRejectedValue(new Error("database unavailable"));

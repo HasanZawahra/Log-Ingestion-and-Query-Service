@@ -12,12 +12,14 @@ vi.mock("pg", () => ({
 
 describe("database initialization", () => {
   beforeEach(() => {
+    // Reset the mocked pool before each import-time initialization scenario.
     vi.resetModules();
     mockConnect.mockReset();
     mockQuery.mockReset();
   });
 
   it("throws a typed error when DATABASE_URL is missing", async () => {
+    // Missing connection details should fail fast during module load.
     const originalDatabaseUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = "";
 
@@ -36,6 +38,7 @@ describe("database initialization", () => {
   });
 
   it("retries initialization after an initial failure", async () => {
+    // The initializer should allow a retry after a transient connection failure.
     const originalDatabaseUrl = process.env.DATABASE_URL;
     process.env.DATABASE_URL = "postgres://postgres:postgres@localhost:5432/app";
 

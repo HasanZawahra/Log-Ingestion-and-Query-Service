@@ -15,12 +15,14 @@ vi.mock("../../config/database.js", () => ({
 
 describe("PostgresRetentionRepository", () => {
   beforeEach(() => {
+    // Reset the pooled connection stubs before each delete scenario.
     mockConnect.mockReset();
     mockQuery.mockReset();
     mockRelease.mockReset();
   });
 
   it("deletes expired logs in a bounded parameterized batch", async () => {
+    // Retention deletes should be small, ordered, and fully parameterized.
     mockConnect.mockResolvedValue({
       query: mockQuery.mockResolvedValue({ rowCount: 128 }),
       release: mockRelease,

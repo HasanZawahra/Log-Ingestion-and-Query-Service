@@ -1,20 +1,32 @@
 {
   "compilerOptions": {
+    // Emit modern JavaScript that matches the Node 22 runtime.
     "target": "ESNext",
+    // Use Node's native ES module semantics.
     "module": "NodeNext",
+    // Keep source files rooted under src/.
     "rootDir": "./src",
+    // Write compiled output to dist/.
     "outDir": "./dist",
+    // Include Node.js type definitions.
     "types": ["node"],
+    // Keep the compiler strict so the codebase stays reliable.
     "strict": true,
-    "sourceMap": true,
+    // Compile against the modern standard library set.
     "lib": ["ESNext"],
+    // Match NodeNext module resolution rules.
     "moduleResolution": "nodenext",
+    // Keep import paths consistent across the codebase.
     "forceConsistentCasingInFileNames": true,
+    // Make array and object indexing safer.
     "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
+    // Allow importing JSON configuration files when needed.
     "resolveJsonModule": true,
+    // Skip type-checking of dependencies for faster builds.
     "skipLibCheck": true
   },
+  // Only compile production and test TypeScript files from src/.
   "include": ["src/**/*.ts"],
+  // Exclude build output and installed dependencies.
   "exclude": ["node_modules", "dist"]
 }

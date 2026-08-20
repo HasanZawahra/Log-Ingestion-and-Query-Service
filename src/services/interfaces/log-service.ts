@@ -4,7 +4,10 @@ import type { LogAggregateResponse } from "../../dto/log-aggregate/log-aggregate
 import type { LogQueryResponse } from "../../dto/log-query/log-query-response.js";
 
 export interface ILogService {
+  // Validates and persists an ingest batch.
   ingestLogs(request: IngestRequest): Promise<IngestResponse>;
+  // Validates and executes the log search request.
   queryLogs(request: unknown): Promise<LogQueryResponse>;
+  // Validates and executes the aggregate query request.
   queryLogAggregates(request: unknown): Promise<LogAggregateResponse>;
 }

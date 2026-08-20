@@ -42,6 +42,7 @@ vi.mock("../../retention/retention-worker.js", () => ({
 
 describe("retention lifecycle integration", () => {
   beforeEach(() => {
+    // Reset all mocks so startup and shutdown each run from a clean slate.
     vi.resetModules();
     mockInitializeDatabase.mockReset();
     mockCloseDatabase.mockReset();
@@ -54,6 +55,7 @@ describe("retention lifecycle integration", () => {
   });
 
   it("starts retention after the database is ready and registers shutdown handlers", async () => {
+    // This test verifies the full startup/shutdown handshake around the retention worker.
     mockInitializeDatabase.mockResolvedValue(undefined);
     mockGetRetentionConfig.mockReturnValue({
       logRetentionDays: 30,
@@ -92,6 +94,7 @@ describe("retention lifecycle integration", () => {
       expect(onceSpy).toHaveBeenCalledWith("SIGINT", expect.any(Function));
       expect(onceSpy).toHaveBeenCalledWith("SIGTERM", expect.any(Function));
 
+      // Trigger the shutdown path the same way a real process signal would.
       signalHandlers.SIGINT?.();
       await new Promise<void>((resolve) => setImmediate(resolve));
       await new Promise<void>((resolve) => setImmediate(resolve));
