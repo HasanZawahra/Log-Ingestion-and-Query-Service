@@ -21,8 +21,8 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
+        # Wait until PostgreSQL is actually ready before running the job.
         options: >-
-          # Wait until PostgreSQL is actually ready before running the job.
           --health-cmd="pg_isready -U postgres -d app"
           --health-interval=5s
           --health-timeout=5s
